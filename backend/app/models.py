@@ -6,12 +6,12 @@ class ProcessRequest(BaseModel):
     custom_rules: Optional[Dict[str, List[str]]] = None
     temp_regex: Optional[List[str]] = None
 
-class IngestRequest(BaseModel):
-    data: List[Dict[str, str]]
-
 class ProcessResponse(BaseModel):
     data: List[Dict[str, str]]
     error: Optional[str] = None
+
+class IngestRequest(BaseModel):
+    data: List[Dict[str, str]]
 
 class IngestResponse(BaseModel):
     success: bool

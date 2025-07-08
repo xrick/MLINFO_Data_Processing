@@ -4,6 +4,7 @@ from .models import ProcessRequest, IngestRequest, ProcessResponse, IngestRespon
 from .parser import Parser
 from .db_ingestor import DBIngestor
 import os
+import re
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -12,11 +13,25 @@ app = FastAPI(title="Data Processing API", version="2.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:8080", "http://127.0.0.1:8080"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+def validate_regex_patterns(patterns):
+    """Validate regex patterns for safety"""
+    if not patterns:
+        return True
+    
+    for pattern in patterns:
+        if not pattern.strip():
+            continue
+        try:
+            re.compile(pattern)
+        except re.error:
+            return False
+    return True
 
 @app.get("/", tags=["Root"])
 def read_root():
@@ -26,6 +41,11 @@ def read_root():
 def process_text_content(request: ProcessRequest):
     if not request.text_content.strip():
         raise HTTPException(status_code=400, detail="text_content cannot be empty.")
+    
+    # Validate regex patterns if provided
+    if request.temp_regex and not validate_regex_patterns(request.temp_regex):
+        raise HTTPException(status_code=400, detail="Invalid regex patterns provided.")
+    
     try:
         parser_engine = Parser(request)
         processed_data = parser_engine.run()
