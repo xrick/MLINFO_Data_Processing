@@ -1,0 +1,147 @@
+{
+  "description": "Data fields extracted from default_keywords.json - comprehensive laptop specification categories",
+  "version": "1.0",
+  "created": "2025-07-10",
+  "total_fields": 35,
+  "categories": {
+    "basic_info": {
+      "description": "Basic product information",
+      "fields": [
+        "modeltype",
+        "version", 
+        "modelname",
+        "mainboard",
+        "devtime",
+        "pm"
+      ]
+    },
+    "structure_interface": {
+      "description": "Physical structure and interface components",
+      "fields": [
+        "structconfig",
+        "lcd",
+        "touchpanel", 
+        "iointerface",
+        "ledind",
+        "powerbutton",
+        "keyboard"
+      ]
+    },
+    "input_devices": {
+      "description": "User input and interaction devices",
+      "fields": [
+        "webcamera",
+        "touchpad",
+        "fingerprint",
+        "audio"
+      ]
+    },
+    "hardware_core": {
+      "description": "Core hardware components",
+      "fields": [
+        "battery",
+        "cpu",
+        "gpu", 
+        "memory",
+        "lcdconnector",
+        "storage",
+        "wifislot",
+        "thermal"
+      ]
+    },
+    "system_security": {
+      "description": "System and security components",
+      "fields": [
+        "tpm",
+        "rtc",
+        "wireless",
+        "lan",
+        "bluetooth"
+      ]
+    },
+    "software_misc": {
+      "description": "Software configuration and miscellaneous features",
+      "fields": [
+        "softwareconfig",
+        "ai",
+        "accessory",
+        "certifications", 
+        "otherfeatures"
+      ]
+    }
+  },
+  "all_fields": [
+    "modeltype",
+    "version",
+    "modelname", 
+    "mainboard",
+    "devtime",
+    "pm",
+    "structconfig",
+    "lcd",
+    "touchpanel",
+    "iointerface",
+    "ledind", 
+    "powerbutton",
+    "keyboard",
+    "webcamera",
+    "touchpad",
+    "fingerprint",
+    "audio",
+    "battery",
+    "cpu",
+    "gpu",
+    "memory",
+    "lcdconnector",
+    "storage",
+    "wifislot",
+    "thermal",
+    "tpm",
+    "rtc",
+    "wireless",
+    "lan",
+    "bluetooth",
+    "softwareconfig",
+    "ai",
+    "accessory",
+    "certifications",
+    "otherfeatures"
+  ],
+  "field_mappings": {
+    "modeltype": ["modeltype"],
+    "version": ["Stage & Version Information", "MP Version"],
+    "modelname": ["Model Information", "Model Names"],
+    "mainboard": ["Board Versions", "MB Version", "Motherboard (MB) Version", "Daughterboard (DB) Version"],
+    "devtime": ["Development Timeline", "Kick-off Dates", "Development Stage"],
+    "pm": ["PM Ownership", "Project Owner", "Project Management"],
+    "structconfig": ["Structure Configuration", "Form Factor"],
+    "lcd": ["LCD"],
+    "touchpanel": ["Touch Panel"],
+    "iointerface": ["I/O Interface"],
+    "ledind": ["LED Indicator"],
+    "powerbutton": ["Power Button"],
+    "keyboard": ["Keyboard"],
+    "webcamera": ["Web Camera"],
+    "touchpad": ["Touchpad"],
+    "fingerprint": ["Fingerprint"],
+    "audio": ["Audio"],
+    "battery": ["Battery"],
+    "cpu": ["CPU"],
+    "gpu": ["GPU"],
+    "memory": ["Memory"],
+    "lcdconnector": ["LCD Connector"],
+    "storage": ["Storage"],
+    "wifislot": ["WIFI Slot"],
+    "thermal": ["Thermal Solution"],
+    "tpm": ["TPM"],
+    "rtc": ["RTC"],
+    "wireless": ["Wireless"],
+    "lan": ["LAN"],
+    "bluetooth": ["Bluetooth"],
+    "softwareconfig": ["Software Configuration", "Operating System"],
+    "ai": ["AI"],
+    "accessory": ["Accessory"],
+    "certifications": ["Certifications", "certfications"],
+    "otherfeatures": ["Other Features"]
+  }
+}

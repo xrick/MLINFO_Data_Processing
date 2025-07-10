@@ -29,7 +29,7 @@ class CSVParser(ParseBase):
         self._df = None
         self._rules = None
         self._parsed_data = []
-        self._rules_file = Path(__file__).parent / "csvparse_rules.json"
+        self._rules_file = Path(__file__).parent / "rules.json"
     
     def beforeParse(self, data: Any, config: Optional[Dict] = None) -> bool:
         """
@@ -50,14 +50,17 @@ class CSVParser(ParseBase):
             
             # 載入 CSV 資料
             if isinstance(data, str):
-                # 如果是檔案路徑
-                self._df = pd.read_csv(data, encoding='utf-8')
+                # 如果是檔案路徑，處理多行合併的情況
+                self._df = pd.read_csv(data, encoding='utf-8', keep_default_na=False)
             elif isinstance(data, pd.DataFrame):
                 # 如果已經是 DataFrame
                 self._df = data
             else:
                 logger.error("不支援的資料格式")
                 return False
+            
+            # 預處理：合併多行資料
+            self._preprocess_multiline_data()
             
             # 儲存配置
             if config:
@@ -145,7 +148,7 @@ class CSVParser(ParseBase):
     
     def endParse(self) -> bool:
         """
-        解析後處理工作
+        解析後處理工作，輸出處理過的 CSV 檔案
         
         Returns:
             bool: 後處理是否成功
@@ -158,10 +161,18 @@ class CSVParser(ParseBase):
             if not self._validate_data():
                 logger.warning("資料驗證失敗，但繼續處理")
             
+            # 轉換為結構化的 DataFrame
+            processed_df = self._convert_to_structured_dataframe()
+            
+            # 輸出為 CSV 檔案
+            output_path = Path(__file__).parent / "processed_output.csv"
+            processed_df.to_csv(output_path, index=False, encoding='utf-8')
+            
             # 儲存解析結果
             self.data = self._parsed_data
+            self.processed_dataframe = processed_df
             
-            logger.info("解析後處理完成")
+            logger.info(f"解析後處理完成，CSV 檔案已儲存到: {output_path}")
             return True
             
         except Exception as e:
@@ -178,26 +189,76 @@ class CSVParser(ParseBase):
             logger.error(f"載入規則檔案失敗: {str(e)}")
             return False
     
+    def _preprocess_multiline_data(self):
+        """預處理多行資料，合併分散在多行的內容"""
+        try:
+            # 針對每一列，檢查是否需要與下一行合併
+            for col in self._df.columns:
+                for idx in range(len(self._df) - 1):
+                    current_value = str(self._df.iloc[idx][col]).strip()
+                    next_value = str(self._df.iloc[idx + 1][col]).strip()
+                    
+                    # 如果當前行以特定模式結尾，且下一行有內容，則合併
+                    if (current_value and next_value and 
+                        not next_value.startswith(('Updated', 'Stage', 'Model', 'P/N', 'ID', 'MB', 'DB')) and
+                        current_value.endswith((',', ':', '(', '-', '：'))):
+                        # 合併兩行
+                        merged_value = f"{current_value} {next_value}"
+                        self._df.iloc[idx, self._df.columns.get_loc(col)] = merged_value
+                        self._df.iloc[idx + 1, self._df.columns.get_loc(col)] = ""
+            
+            logger.info("多行資料預處理完成")
+            
+        except Exception as e:
+            logger.warning(f"多行資料預處理失敗: {str(e)}")
+    
+    def _extract_from_cell_content(self, content: str, patterns: List[str], regex_list: List[str]) -> List[str]:
+        """從單元格內容中提取匹配的資料"""
+        results = []
+        content_str = str(content).strip()
+        
+        if not content_str or content_str in ["", "nan", "None"]:
+            return results
+        
+        # 檢查是否包含關鍵詞模式
+        for pattern in patterns:
+            if pattern.lower() in content_str.lower():
+                # 使用正則表達式提取具體值
+                for regex in regex_list:
+                    try:
+                        matches = re.findall(regex, content_str, re.IGNORECASE)
+                        results.extend(matches)
+                    except re.error as e:
+                        logger.warning(f"正則表達式錯誤 {regex}: {str(e)}")
+                break
+        
+        return list(set(results))  # 去重
+    
     def _extract_model_info(self) -> List[Dict]:
         """提取模型資訊"""
         results = []
         rules = self._rules['csv_parsing_rules']['model_extraction']
         
-        for col in self._df.columns:
-            if any(pattern.lower() in col.lower() for pattern in rules['model_name_patterns']):
-                for idx, value in enumerate(self._df[col]):
-                    if pd.notna(value) and str(value).strip():
-                        # 使用正則表達式提取模型名稱
-                        for regex in rules['model_regex']:
-                            matches = re.findall(regex, str(value))
-                            for match in matches:
-                                results.append({
-                                    'category': 'model_info',
-                                    'type': 'model_name',
-                                    'value': match,
-                                    'source': f"{col}:{idx}",
-                                    'raw_data': str(value)
-                                })
+        # 檢查所有單元格內容
+        for idx, row in self._df.iterrows():
+            for col in self._df.columns:
+                cell_content = str(row[col]).strip()
+                if cell_content:
+                    # 使用新的統一提取方法
+                    matches = self._extract_from_cell_content(
+                        cell_content, 
+                        rules['model_name_patterns'], 
+                        rules['model_regex']
+                    )
+                    
+                    for match in matches:
+                        results.append({
+                            'category': 'model_info',
+                            'type': 'model_name',
+                            'value': match,
+                            'source': f"{col}:{idx}",
+                            'raw_data': cell_content
+                        })
         
         return results
     
@@ -206,20 +267,25 @@ class CSVParser(ParseBase):
         results = []
         rules = self._rules['csv_parsing_rules']['version_extraction']
         
-        for col in self._df.columns:
-            if any(pattern.lower() in col.lower() for pattern in rules['version_patterns']):
-                for idx, value in enumerate(self._df[col]):
-                    if pd.notna(value) and str(value).strip():
-                        for regex in rules['version_regex']:
-                            matches = re.findall(regex, str(value))
-                            for match in matches:
-                                results.append({
-                                    'category': 'version_info',
-                                    'type': 'version',
-                                    'value': match,
-                                    'source': f"{col}:{idx}",
-                                    'raw_data': str(value)
-                                })
+        # 檢查所有單元格內容
+        for idx, row in self._df.iterrows():
+            for col in self._df.columns:
+                cell_content = str(row[col]).strip()
+                if cell_content:
+                    matches = self._extract_from_cell_content(
+                        cell_content, 
+                        rules['version_patterns'], 
+                        rules['version_regex']
+                    )
+                    
+                    for match in matches:
+                        results.append({
+                            'category': 'version_info',
+                            'type': 'version',
+                            'value': match,
+                            'source': f"{col}:{idx}",
+                            'raw_data': cell_content
+                        })
         
         return results
     
@@ -229,20 +295,24 @@ class CSVParser(ParseBase):
         rules = self._rules['csv_parsing_rules']['hardware_extraction']
         
         for category, category_rules in rules.items():
-            for col in self._df.columns:
-                if any(pattern.lower() in col.lower() for pattern in category_rules.get('patterns', [])):
-                    for idx, value in enumerate(self._df[col]):
-                        if pd.notna(value) and str(value).strip():
-                            for regex in category_rules.get('regex', []):
-                                matches = re.findall(regex, str(value), re.IGNORECASE)
-                                for match in matches:
-                                    results.append({
-                                        'category': 'hardware_info',
-                                        'type': category.replace('_patterns', ''),
-                                        'value': match,
-                                        'source': f"{col}:{idx}",
-                                        'raw_data': str(value)
-                                    })
+            for idx, row in self._df.iterrows():
+                for col in self._df.columns:
+                    cell_content = str(row[col]).strip()
+                    if cell_content:
+                        matches = self._extract_from_cell_content(
+                            cell_content, 
+                            category_rules.get('patterns', []), 
+                            category_rules.get('regex', [])
+                        )
+                        
+                        for match in matches:
+                            results.append({
+                                'category': 'hardware_info',
+                                'type': category.replace('_patterns', ''),
+                                'value': match,
+                                'source': f"{col}:{idx}",
+                                'raw_data': cell_content
+                            })
         
         return results
     
@@ -252,20 +322,24 @@ class CSVParser(ParseBase):
         rules = self._rules['csv_parsing_rules']['display_extraction']
         
         for category, category_rules in rules.items():
-            for col in self._df.columns:
-                if any(pattern.lower() in col.lower() for pattern in category_rules.get('patterns', [])):
-                    for idx, value in enumerate(self._df[col]):
-                        if pd.notna(value) and str(value).strip():
-                            for regex in category_rules.get('regex', []):
-                                matches = re.findall(regex, str(value), re.IGNORECASE)
-                                for match in matches:
-                                    results.append({
-                                        'category': 'display_info',
-                                        'type': category.replace('_patterns', ''),
-                                        'value': match,
-                                        'source': f"{col}:{idx}",
-                                        'raw_data': str(value)
-                                    })
+            for idx, row in self._df.iterrows():
+                for col in self._df.columns:
+                    cell_content = str(row[col]).strip()
+                    if cell_content:
+                        matches = self._extract_from_cell_content(
+                            cell_content, 
+                            category_rules.get('patterns', []), 
+                            category_rules.get('regex', [])
+                        )
+                        
+                        for match in matches:
+                            results.append({
+                                'category': 'display_info',
+                                'type': category.replace('_patterns', ''),
+                                'value': match,
+                                'source': f"{col}:{idx}",
+                                'raw_data': cell_content
+                            })
         
         return results
     
@@ -275,20 +349,24 @@ class CSVParser(ParseBase):
         rules = self._rules['csv_parsing_rules']['connectivity_extraction']
         
         for category, category_rules in rules.items():
-            for col in self._df.columns:
-                if any(pattern.lower() in col.lower() for pattern in category_rules.get('patterns', [])):
-                    for idx, value in enumerate(self._df[col]):
-                        if pd.notna(value) and str(value).strip():
-                            for regex in category_rules.get('regex', []):
-                                matches = re.findall(regex, str(value), re.IGNORECASE)
-                                for match in matches:
-                                    results.append({
-                                        'category': 'connectivity_info',
-                                        'type': category.replace('_patterns', ''),
-                                        'value': match,
-                                        'source': f"{col}:{idx}",
-                                        'raw_data': str(value)
-                                    })
+            for idx, row in self._df.iterrows():
+                for col in self._df.columns:
+                    cell_content = str(row[col]).strip()
+                    if cell_content:
+                        matches = self._extract_from_cell_content(
+                            cell_content, 
+                            category_rules.get('patterns', []), 
+                            category_rules.get('regex', [])
+                        )
+                        
+                        for match in matches:
+                            results.append({
+                                'category': 'connectivity_info',
+                                'type': category.replace('_patterns', ''),
+                                'value': match,
+                                'source': f"{col}:{idx}",
+                                'raw_data': cell_content
+                            })
         
         return results
     
@@ -297,20 +375,24 @@ class CSVParser(ParseBase):
         results = []
         rules = self._rules['csv_parsing_rules']['battery_extraction']
         
-        for col in self._df.columns:
-            if any(pattern.lower() in col.lower() for pattern in rules['battery_patterns']):
-                for idx, value in enumerate(self._df[col]):
-                    if pd.notna(value) and str(value).strip():
-                        for regex in rules['battery_regex']:
-                            matches = re.findall(regex, str(value))
-                            for match in matches:
-                                results.append({
-                                    'category': 'battery_info',
-                                    'type': 'battery_spec',
-                                    'value': match,
-                                    'source': f"{col}:{idx}",
-                                    'raw_data': str(value)
-                                })
+        for idx, row in self._df.iterrows():
+            for col in self._df.columns:
+                cell_content = str(row[col]).strip()
+                if cell_content:
+                    matches = self._extract_from_cell_content(
+                        cell_content, 
+                        rules['battery_patterns'], 
+                        rules['battery_regex']
+                    )
+                    
+                    for match in matches:
+                        results.append({
+                            'category': 'battery_info',
+                            'type': 'battery_spec',
+                            'value': match,
+                            'source': f"{col}:{idx}",
+                            'raw_data': cell_content
+                        })
         
         return results
     
@@ -429,6 +511,82 @@ class CSVParser(ParseBase):
         
         logger.info(f"資料驗證: {valid_count}/{total_count} 條記錄有效")
         return valid_count > 0
+    
+    def _convert_to_structured_dataframe(self) -> pd.DataFrame:
+        """將解析結果轉換為結構化的 DataFrame"""
+        try:
+            # 按類別組織資料
+            structured_data = {}
+            
+            # 從原始 CSV 中提取基本資訊（模型名稱作為主鍵）
+            models = []
+            for idx, row in self._df.iterrows():
+                for col in self._df.columns:
+                    cell_content = str(row[col]).strip()
+                    # 尋找模型名稱（如 APX938, ARB938 等）
+                    if re.match(r'^[A-Z]{3}\d{3}[A-Z]?$', cell_content):
+                        if cell_content not in models:
+                            models.append(cell_content)
+            
+            # 如果沒有找到模型，使用列名作為模型
+            if not models:
+                models = [col for col in self._df.columns if col not in ['Unnamed: 0', 'Unnamed: 6', 'Unnamed: 7']][:4]
+            
+            # 為每個模型創建記錄
+            output_rows = []
+            for model in models:
+                row_data = {'model_name': model}
+                
+                # 按類別整理資料
+                for item in self._parsed_data:
+                    category = item['category']
+                    item_type = item['type']
+                    value = item['value']
+                    
+                    # 根據來源欄位判斷是否屬於此模型
+                    if self._belongs_to_model(item['source'], model):
+                        column_name = f"{category}_{item_type}"
+                        
+                        # 如果已存在該欄位，合併值
+                        if column_name in row_data:
+                            if isinstance(row_data[column_name], str):
+                                if value not in row_data[column_name]:
+                                    row_data[column_name] += f"; {value}"
+                            else:
+                                row_data[column_name] = f"{row_data[column_name]}; {value}"
+                        else:
+                            row_data[column_name] = value
+                
+                output_rows.append(row_data)
+            
+            # 創建 DataFrame
+            df = pd.DataFrame(output_rows)
+            
+            # 重新排列欄位順序
+            preferred_order = ['model_name']
+            other_cols = [col for col in df.columns if col != 'model_name']
+            other_cols.sort()
+            df = df[preferred_order + other_cols]
+            
+            logger.info(f"轉換為結構化 DataFrame: {len(df)} 行, {len(df.columns)} 欄")
+            return df
+            
+        except Exception as e:
+            logger.error(f"轉換為 DataFrame 失敗: {str(e)}")
+            # 返回基本的 DataFrame
+            return pd.DataFrame(self._parsed_data)
+    
+    def _belongs_to_model(self, source: str, model: str) -> bool:
+        """判斷資料項目是否屬於特定模型"""
+        # 簡單的歸屬判斷邏輯
+        # 可以根據來源欄位名稱或位置來判斷
+        if model in ['APX938', 'ARB938', 'AHP938U', 'AKK938']:
+            model_index = ['APX938', 'ARB938', 'AHP938U', 'AKK938'].index(model)
+            if f'FP7r2.{model_index}' in source or f'FP8' in source:
+                return True
+            if source.startswith('FP7r2:') and model_index == 0:
+                return True
+        return True  # 默認情況下歸屬於所有模型
     
     def get_parsed_data(self) -> List[Dict]:
         """獲取解析後的資料"""
