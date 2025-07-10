@@ -1,7 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from .models import ProcessRequest, IngestRequest, ProcessResponse, IngestResponse
-from .parser import Parser
 from .db_ingestor import DBIngestor
 import os
 import re
@@ -39,21 +38,12 @@ def read_root():
 
 @app.post("/api/process", response_model=ProcessResponse, tags=["Processing"])
 def process_text_content(request: ProcessRequest):
-    if not request.text_content.strip():
-        raise HTTPException(status_code=400, detail="text_content cannot be empty.")
-    
-    # Validate regex patterns if provided
-    if request.temp_regex and not validate_regex_patterns(request.temp_regex):
-        raise HTTPException(status_code=400, detail="Invalid regex patterns provided.")
-    
-    try:
-        parser_engine = Parser(request)
-        processed_data = parser_engine.run()
-        if not processed_data:
-            return ProcessResponse(data=[], error="Could not extract any models.")
-        return ProcessResponse(data=processed_data)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    # This endpoint is temporarily disabled during architecture refactoring
+    # ParseBase system will be integrated in future updates
+    raise HTTPException(
+        status_code=501, 
+        detail="Processing endpoint temporarily unavailable during system refactoring. Please use ParseBase CSV parsers directly."
+    )
 
 @app.post("/api/ingest-to-db", response_model=IngestResponse, tags=["Database"])
 def ingest_data_to_db(request: IngestRequest):
