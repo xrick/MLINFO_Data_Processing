@@ -1,4 +1,5 @@
 {
+    "keywords":{
     "modeltype": ["modeltype"],
     "version": ["Stage & Version Information", "MP Version"],
     "modelname": ["Model Information", "Model Names"],
@@ -34,4 +35,5 @@
     "accessory": ["Accessory"],
     "certifications": ["Certifications", "certfications"],
     "otherfeatures": ["Other Features"]
+    }
 }

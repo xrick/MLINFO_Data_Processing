@@ -1,0 +1,179 @@
+{
+    "csv_parsing_rules": {
+        "model_extraction": {
+            "model_name_patterns": [
+                "Model Name",
+                "Model"
+            ],
+            "model_regex": [
+                "\\b[A-Z]{3}\\d{3}\\b",
+                "\\b[A-Z]{3}\\d{3}[A-Z]\\b"
+            ],
+            "part_number_patterns": [
+                "P/N",
+                "Part Number"
+            ],
+            "part_number_regex": [
+                "EM-\\d{3}-[A-Z]{2}\\d{2}[A-Z]{2,3}"
+            ]
+        },
+        "version_extraction": {
+            "version_patterns": [
+                "Version",
+                "MP Version",
+                "Stage"
+            ],
+            "version_regex": [
+                "\\b[A-Z]{2,3}_v\\d+\\.\\d+\\b",
+                "\\b[A-Z]{2,3}\\s+v\\d+\\.\\d+\\b"
+            ]
+        },
+        "hardware_extraction": {
+            "cpu_patterns": [
+                "CPU",
+                "Module"
+            ],
+            "cpu_regex": [
+                "Ryzen™\\s+\\d+\\s+\\d{4}[A-Z]{2}\\s*\\([^)]+\\)",
+                "AMD\\s+[A-Za-z]+\\s+[A-Za-z]+\\s+Series"
+            ],
+            "gpu_patterns": [
+                "GPU",
+                "Model"
+            ],
+            "gpu_regex": [
+                "AMD\\s+Radeon™\\s+\\d+[A-Z]",
+                "AMD\\s+Radeon™\\s+Graphics"
+            ],
+            "memory_patterns": [
+                "Memory",
+                "RAM"
+            ],
+            "memory_regex": [
+                "\\d+\\*\\s*DDR\\d+\\s+SO-DIMM",
+                "up\\s+to\\s+\\d+GB\\s+DDR\\d+\\s+\\d+MHz"
+            ],
+            "storage_patterns": [
+                "Storage",
+                "SSD"
+            ],
+            "storage_regex": [
+                "\\d+\\*\\s*M\\.2\\s+\\d{4}\\s+PCle\\s+[A-Z]\\d+",
+                "up\\s+to\\s+\\d+TB"
+            ]
+        },
+        "display_extraction": {
+            "lcd_patterns": [
+                "LCD",
+                "Dimension"
+            ],
+            "lcd_regex": [
+                "\\d+\\.\\d+\"\\s+\\d+:\\d+",
+                "\\d+\\.\\d+\"\\s+\\d+\\*\\s+\\d+\\s+[A-Z]+"
+            ],
+            "resolution_patterns": [
+                "Resolution"
+            ],
+            "resolution_regex": [
+                "\\d+\\*\\s*\\d+\\s+[A-Z]+",
+                "\\d+Hz"
+            ]
+        },
+        "connectivity_extraction": {
+            "wifi_patterns": [
+                "Wifi",
+                "WiFi"
+            ],
+            "wifi_regex": [
+                "WiFi\\s+\\d+[A-Z]?\\s*\\+\\s*BT\\d+\\.\\d+",
+                "802\\.11[a-z]+"
+            ],
+            "bluetooth_patterns": [
+                "Bluetooth",
+                "BT"
+            ],
+            "bluetooth_regex": [
+                "BT\\s+\\d+\\.\\d+",
+                "Bluetooth\\s+\\d+\\.\\d+"
+            ]
+        },
+        "battery_extraction": {
+            "battery_patterns": [
+                "Battery",
+                "Capacity"
+            ],
+            "battery_regex": [
+                "\\d+\\.\\d+Wh",
+                "\\d+\\.\\d+V/\\d+mAh"
+            ]
+        },
+        "dimension_extraction": {
+            "dimension_patterns": [
+                "Dimension",
+                "Size"
+            ],
+            "dimension_regex": [
+                "\\d+\\*\\s*\\d+\\*\\s*\\d+\\.\\d+mm",
+                "\\d+\\.\\d+\\s*kg"
+            ]
+        },
+        "development_extraction": {
+            "timeline_patterns": [
+                "Develop",
+                "stage",
+                "Kick-off",
+                "EVT",
+                "DVT",
+                "PVT",
+                "MP"
+            ],
+            "timeline_regex": [
+                "\\d{4}/\\d{2}/\\d{2}-\\d{4}/\\d{2}/\\d{2}",
+                "\\d{4}/\\d{2}/\\d{2}"
+            ]
+        },
+        "software_extraction": {
+            "os_patterns": [
+                "Operating System",
+                "System"
+            ],
+            "os_regex": [
+                "Windows\\d+\\s+[A-Z0-9]+",
+                "Linux\\s+OS"
+            ]
+        },
+        "certification_extraction": {
+            "cert_patterns": [
+                "Certifications",
+                "Safety"
+            ],
+            "cert_regex": [
+                "CCC",
+                "RoHS",
+                "BSMI",
+                "CB",
+                "MSDS",
+                "UN38\\.3"
+            ]
+        }
+    },
+    "data_cleaning_rules": {
+        "remove_patterns": [
+            "N/A",
+            "TBC",
+            "Optional"
+        ],
+        "cleanup_regex": [
+            "\\s+",
+            "\\n+"
+        ]
+    },
+    "column_mapping": {
+        "model_info": ["Model", "Model Name", "P/N", "ID"],
+        "version_info": ["Stage", "Version", "MP_v1.0", "PVT_v1.4", "PVT_v1.0", "Planning_v0.1"],
+        "hardware_info": ["CPU", "GPU", "Memory", "Storage", "Wifi", "Battery"],
+        "display_info": ["LCD", "Touch panel"],
+        "connectivity_info": ["IO Interface", "Wifi", "Bluetooth", "LAN"],
+        "software_info": ["Operating System", "BIOS/EC", "AI Function"]
+    }
+} 

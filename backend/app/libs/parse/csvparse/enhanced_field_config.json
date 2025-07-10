@@ -1,0 +1,408 @@
+{
+  "version": "2.0",
+  "description": "Unified configuration combining default keywords with regex patterns for CSV parsing",
+  "field_definitions": {
+    "modeltype": {
+      "keywords": ["modeltype"],
+      "regex_patterns": [
+        "\\b[A-Z]{3}\\d{3}\\b",
+        "\\b[A-Z]{3}\\d{3}[A-Z]\\b"
+      ],
+      "data_type": "string",
+      "required": true,
+      "validation": "^[A-Z]{3}\\d{3}[A-Z]?$"
+    },
+    "version": {
+      "keywords": ["Stage & Version Information", "MP Version", "Version", "Stage"],
+      "regex_patterns": [
+        "\\b[A-Z]{2,3}_v\\d+\\.\\d+\\b",
+        "\\b[A-Z]{2,3}\\s+v\\d+\\.\\d+\\b",
+        "\\d{4}/\\d{2}/\\d{2}-\\d{4}/\\d{2}/\\d{2}",
+        "\\d{4}/\\d{2}/\\d{2}"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "modelname": {
+      "keywords": ["Model Information", "Model Names", "Model Name", "Model"],
+      "regex_patterns": [
+        "\\b[A-Z]{3}\\d{3}\\b",
+        "\\b[A-Z]{3}\\d{3}[A-Z]\\b",
+        "EM-\\d{3}-[A-Z]{2}\\d{2}[A-Z]{2,3}"
+      ],
+      "data_type": "string",
+      "required": true
+    },
+    "mainboard": {
+      "keywords": ["Board Versions", "MB Version", "Motherboard (MB) Version", "Daughterboard (DB) Version"],
+      "regex_patterns": [
+        "\\b[A-Z]{2,3}_v\\d+\\.\\d+\\b",
+        "MB\\s+v\\d+\\.\\d+",
+        "DB\\s+v\\d+\\.\\d+"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "devtime": {
+      "keywords": ["Development Timeline", "Kick-off Dates", "Development Stage", "Develop", "stage", "Kick-off", "EVT", "DVT", "PVT", "MP"],
+      "regex_patterns": [
+        "\\d{4}/\\d{2}/\\d{2}-\\d{4}/\\d{2}/\\d{2}",
+        "\\d{4}/\\d{2}/\\d{2}",
+        "EVT\\s+\\d{4}/\\d{2}",
+        "DVT\\s+\\d{4}/\\d{2}",
+        "PVT\\s+\\d{4}/\\d{2}",
+        "MP\\s+\\d{4}/\\d{2}"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "pm": {
+      "keywords": ["PM Ownership", "Project Owner", "Project Management"],
+      "regex_patterns": [
+        "[A-Z][a-z]+\\s+[A-Z][a-z]+",
+        "PM:\\s*[A-Z][a-z]+",
+        "@[a-z]+\\.[a-z]+"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "structconfig": {
+      "keywords": ["Structure Configuration", "Form Factor"],
+      "regex_patterns": [
+        "\\d+\\.\\d+\"",
+        "\\d+\\*\\s*\\d+\\*\\s*\\d+\\.\\d+mm",
+        "\\d+\\.\\d+\\s*kg"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "lcd": {
+      "keywords": ["LCD", "Dimension"],
+      "regex_patterns": [
+        "\\d+\\.\\d+\"\\s+\\d+:\\d+",
+        "\\d+\\.\\d+\"\\s+\\d+\\*\\s*\\d+\\s+[A-Z]+",
+        "\\d+\\*\\s*\\d+\\s+[A-Z]+",
+        "\\d+Hz"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "touchpanel": {
+      "keywords": ["Touch Panel"],
+      "regex_patterns": [
+        "Touch\\s+Panel",
+        "Multi-touch",
+        "Capacitive\\s+touch",
+        "10-point\\s+touch"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "iointerface": {
+      "keywords": ["I/O Interface"],
+      "regex_patterns": [
+        "USB\\s+\\d+\\.\\d+",
+        "HDMI\\s+\\d+\\.\\d+",
+        "Type-C",
+        "Audio\\s+Jack",
+        "SD\\s+Card"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "ledind": {
+      "keywords": ["LED Indicator"],
+      "regex_patterns": [
+        "LED\\s+Indicator",
+        "Power\\s+LED",
+        "Status\\s+LED"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "powerbutton": {
+      "keywords": ["Power Button"],
+      "regex_patterns": [
+        "Power\\s+Button",
+        "On/Off\\s+Button",
+        "Power\\s+Key"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "keyboard": {
+      "keywords": ["Keyboard"],
+      "regex_patterns": [
+        "Backlit\\s+Keyboard",
+        "Chiclet\\s+Keyboard",
+        "Full-size\\s+Keyboard",
+        "\\d+-key\\s+Keyboard"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "webcamera": {
+      "keywords": ["Web Camera"],
+      "regex_patterns": [
+        "\\d+MP\\s+Camera",
+        "HD\\s+Camera",
+        "FHD\\s+Camera",
+        "\\d+\\*\\s*\\d+\\s+Camera"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "touchpad": {
+      "keywords": ["Touchpad"],
+      "regex_patterns": [
+        "Precision\\s+Touchpad",
+        "Multi-touch\\s+Touchpad",
+        "Gesture\\s+Support"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "fingerprint": {
+      "keywords": ["Fingerprint"],
+      "regex_patterns": [
+        "Fingerprint\\s+Scanner",
+        "Biometric\\s+Scanner",
+        "Touch\\s+ID"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "audio": {
+      "keywords": ["Audio"],
+      "regex_patterns": [
+        "Dolby\\s+Audio",
+        "Stereo\\s+Speakers",
+        "\\d+W\\s+Speakers",
+        "Audio\\s+Jack"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "battery": {
+      "keywords": ["Battery", "Capacity"],
+      "regex_patterns": [
+        "\\d+\\.\\d+Wh",
+        "\\d+\\.\\d+V/\\d+mAh",
+        "\\d+\\s+Cell\\s+Battery",
+        "Li-ion\\s+Battery"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "cpu": {
+      "keywords": ["CPU", "Module"],
+      "regex_patterns": [
+        "Ryzen™\\s+\\d+\\s+\\d{4}[A-Z]{2}\\s*\\([^)]+\\)",
+        "AMD\\s+[A-Za-z]+\\s+[A-Za-z]+\\s+Series",
+        "Intel\\s+Core\\s+i\\d+",
+        "\\d+\\.\\d+GHz",
+        "\\d+\\s+Cores"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "gpu": {
+      "keywords": ["GPU", "Graphics"],
+      "regex_patterns": [
+        "AMD\\s+Radeon™\\s+\\d+[A-Z]",
+        "AMD\\s+Radeon™\\s+Graphics",
+        "NVIDIA\\s+GeForce",
+        "Integrated\\s+Graphics"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "memory": {
+      "keywords": ["Memory", "RAM"],
+      "regex_patterns": [
+        "\\d+\\*\\s*DDR\\d+\\s+SO-DIMM",
+        "up\\s+to\\s+\\d+GB\\s+DDR\\d+\\s+\\d+MHz",
+        "\\d+GB\\s+DDR\\d+",
+        "\\d+MHz\\s+Memory"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "lcdconnector": {
+      "keywords": ["LCD Connector"],
+      "regex_patterns": [
+        "eDP\\s+\\d+\\.\\d+",
+        "LVDS\\s+Connector",
+        "\\d+-pin\\s+Connector"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "storage": {
+      "keywords": ["Storage", "SSD"],
+      "regex_patterns": [
+        "\\d+\\*\\s*M\\.2\\s+\\d{4}\\s+PCIe\\s+[A-Z]\\d+",
+        "up\\s+to\\s+\\d+TB",
+        "\\d+GB\\s+SSD",
+        "\\d+TB\\s+SSD",
+        "NVMe\\s+SSD"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "wifislot": {
+      "keywords": ["WIFI Slot", "Wifi", "WiFi"],
+      "regex_patterns": [
+        "WiFi\\s+\\d+[A-Z]?\\s*\\+\\s*BT\\d+\\.\\d+",
+        "802\\.11[a-z]+",
+        "M\\.2\\s+\\d{4}\\s+WiFi",
+        "WiFi\\s+\\d+\\s+\\+\\s+BT"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "thermal": {
+      "keywords": ["Thermal Solution"],
+      "regex_patterns": [
+        "Heat\\s+Pipe",
+        "Thermal\\s+Pad",
+        "Cooling\\s+Fan",
+        "TDP\\s+\\d+W"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "tpm": {
+      "keywords": ["TPM"],
+      "regex_patterns": [
+        "TPM\\s+\\d+\\.\\d+",
+        "Trusted\\s+Platform\\s+Module",
+        "Security\\s+Chip"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "rtc": {
+      "keywords": ["RTC"],
+      "regex_patterns": [
+        "RTC\\s+Battery",
+        "Real\\s+Time\\s+Clock",
+        "CMOS\\s+Battery"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "wireless": {
+      "keywords": ["Wireless"],
+      "regex_patterns": [
+        "WiFi\\s+\\d+[A-Z]?\\s*\\+\\s*BT\\d+\\.\\d+",
+        "802\\.11[a-z]+",
+        "Bluetooth\\s+\\d+\\.\\d+",
+        "Wireless\\s+Module"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "lan": {
+      "keywords": ["LAN"],
+      "regex_patterns": [
+        "Gigabit\\s+Ethernet",
+        "10/100/1000\\s+Mbps",
+        "RJ45\\s+Port",
+        "Ethernet\\s+Port"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "bluetooth": {
+      "keywords": ["Bluetooth", "BT"],
+      "regex_patterns": [
+        "BT\\s+\\d+\\.\\d+",
+        "Bluetooth\\s+\\d+\\.\\d+",
+        "BLE\\s+\\d+\\.\\d+"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "softwareconfig": {
+      "keywords": ["Software Configuration", "Operating System", "System"],
+      "regex_patterns": [
+        "Windows\\s*\\d+\\s+[A-Z0-9]+",
+        "Linux\\s+OS",
+        "Ubuntu\\s+\\d+",
+        "BIOS\\s+v\\d+\\.\\d+"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "ai": {
+      "keywords": ["AI"],
+      "regex_patterns": [
+        "AI\\s+Function",
+        "Machine\\s+Learning",
+        "Neural\\s+Processing",
+        "AI\\s+Acceleration"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "accessory": {
+      "keywords": ["Accessory"],
+      "regex_patterns": [
+        "Power\\s+Adapter",
+        "Stylus\\s+Pen",
+        "Docking\\s+Station",
+        "Carrying\\s+Case"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "certifications": {
+      "keywords": ["Certifications", "certfications", "Safety"],
+      "regex_patterns": [
+        "CCC",
+        "RoHS",
+        "BSMI",
+        "CB",
+        "MSDS",
+        "UN38\\.3",
+        "FCC",
+        "CE",
+        "Energy\\s+Star"
+      ],
+      "data_type": "string",
+      "required": false
+    },
+    "otherfeatures": {
+      "keywords": ["Other Features"],
+      "regex_patterns": [
+        "Fast\\s+Charging",
+        "Wireless\\s+Charging",
+        "Backlit\\s+Display",
+        "Anti-glare\\s+Screen"
+      ],
+      "data_type": "string",
+      "required": false
+    }
+  },
+  "global_settings": {
+    "case_sensitive": false,
+    "timeout_seconds": 30,
+    "max_matches_per_field": 10,
+    "enable_parallel_processing": true,
+    "thread_pool_size": 4,
+    "regex_cache_size": 256
+  },
+  "data_cleaning_rules": {
+    "remove_patterns": [
+      "N/A",
+      "TBC",
+      "Optional",
+      "TBD",
+      "Not Available"
+    ],
+    "normalize_whitespace": true,
+    "trim_results": true,
+    "remove_empty_results": true
+  }
+}
