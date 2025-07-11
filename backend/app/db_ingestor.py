@@ -2,7 +2,6 @@ import os
 import pandas as pd
 import duckdb
 from pymilvus import connections, utility, Collection, CollectionSchema, FieldSchema, DataType
-from sentence_transformers import SentenceTransformer
 from typing import List, Dict
 
 class DBIngestor:
@@ -13,7 +12,7 @@ class DBIngestor:
         self.COLLECTION_NAME = "sales_notebook_specs"
         self.EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
         self.EMBEDDING_DIM = 384
-        self.embedding_model = SentenceTransformer(self.EMBEDDING_MODEL_NAME)
+        self._embedding_model = None
         self.ALL_FIELDS = [
             'modeltype', 'version', 'modelname', 'mainboard', 'devtime', 'pm', 
             'structconfig', 'lcd', 'touchpanel', 'iointerface', 'ledind', 
@@ -27,6 +26,15 @@ class DBIngestor:
             'storage', 'wifislot', 'thermal', 'wireless', 'lan', 'bluetooth', 'ai', 
             'certifications'
         ]
+
+    @property
+    def embedding_model(self):
+        """Lazy loading of SentenceTransformer model"""
+        if self._embedding_model is None:
+            print("載入 SentenceTransformer 模型...")
+            from sentence_transformers import SentenceTransformer
+            self._embedding_model = SentenceTransformer(self.EMBEDDING_MODEL_NAME)
+        return self._embedding_model
 
     def ingest(self, data: List[Dict[str, str]]):
         if not data:

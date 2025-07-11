@@ -12,55 +12,23 @@
     </div>
 
     <div class="app-container">
-        <div class="panels-container">
-            <div class="panel">
-                <h2>自動處理區</h2>
-
-                <div class="tab-buttons">
-                    <button id="load-file-tab-btn" class="tab-btn active">載入檔案</button>
-                    <button id="paste-text-tab-btn" class="tab-btn">貼上文字</button>
-                </div>
-
-                <div class="input-area">
-                    <div id="file-upload-view" class="tab-content active">
-                        <div id="file-drop-zone" class="file-upload-area">
-                            <div class="upload-icon">📁</div>
-                            <div class="upload-text">
-                                <span>點擊選擇檔案或拖拽檔案至此</span>
-                                <small>支援 .txt 格式</small>
-                            </div>
-                        </div>
-                        <input type="file" id="text-file-input" accept=".txt" style="display: none;" />
-                    </div>
-
-                    <div id="paste-text-view" class="tab-content">
-                        <textarea id="text-input" placeholder="請貼上技術規格文件內容..."></textarea>
-                    </div>
-                </div>
-                
-                <div class="rules-area">
-                    <h4>規則擴充</h4>
-                    <button id="load-rule-btn">載入規則 (JSON)</button>
-                    <input type="file" id="rule-uploader" accept=".json" style="display: none;" />
-                    <textarea id="temp-regex" placeholder="Enter temporary regex, one per line"></textarea>
-                </div>
-
-                <div class="actions">
-                    <button id="process-btn" class="primary">開始處理</button>
+        <div class="main-panel">
+            <h1>MLINFO 資料處理系統</h1>
+            <p class="subtitle">筆電規格資料匯入與管理</p>
+            
+            <div id="table-container" class="table-container">
+                <div class="empty-state">
+                    <div class="empty-icon">📊</div>
+                    <h3>尚未載入資料</h3>
+                    <p>請使用下方的「匯入 CSV」按鈕載入筆電規格資料</p>
                 </div>
             </div>
-
-            <div class="panel">
-                <h2>手動編輯區</h2>
-                <div id="table-container" class="table-container">
-                    <p>No data to display. Process text on the left.</p>
-                </div>
-                <div class="actions">
-                    <button id="import-csv-btn" class="secondary">匯入 CSV</button>
-                    <input type="file" id="csv-uploader" accept=".csv" style="display: none;" />
-                    <button id="export-csv-btn" class="secondary">匯出 CSV</button>
-                    <button id="ingest-db-btn" class="primary">匯入資料庫</button>
-                </div>
+            
+            <div class="actions">
+                <button id="import-csv-btn" class="secondary">📁 匯入 CSV</button>
+                <input type="file" id="csv-uploader" accept=".csv" style="display: none;" />
+                <button id="export-csv-btn" class="secondary">💾 匯出 CSV</button>
+                <button id="ingest-db-btn" class="primary">🚀 匯入資料庫</button>
             </div>
         </div>
     </div>

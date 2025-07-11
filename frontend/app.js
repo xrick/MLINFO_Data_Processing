@@ -6,28 +6,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- DOM ELEMENTS ---
-    // Views and Tabs
-    const loadFileTabBtn = document.getElementById('load-file-tab-btn');
-    const pasteTextTabBtn = document.getElementById('paste-text-tab-btn');
-    const fileUploadView = document.getElementById('file-upload-view');
-    const pasteTextView = document.getElementById('paste-text-view');
-    const fileDropZone = document.getElementById('file-drop-zone');
-    
-    // Inputs
-    const textFileInput = document.getElementById('text-file-input');
-    const textInput = document.getElementById('text-input'); // The main textarea
-    const tempRegexInput = document.getElementById('temp-regex');
-    const ruleUploader = document.getElementById('rule-uploader');
     const csvUploader = document.getElementById('csv-uploader');
-    
-    // Others
     const tableContainer = document.getElementById('table-container');
     const loadingOverlay = document.getElementById('loading-overlay');
     const loadingMessage = document.getElementById('loading-message');
 
     // --- BUTTONS ---
-    const loadRuleBtn = document.getElementById('load-rule-btn');
-    const processBtn = document.getElementById('process-btn');
     const importCsvBtn = document.getElementById('import-csv-btn');
     const exportCsvBtn = document.getElementById('export-csv-btn');
     const ingestDbBtn = document.getElementById('ingest-db-btn');
@@ -46,7 +30,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const renderTable = () => {
         if (state.tableData.length === 0) {
-            tableContainer.innerHTML = '<p>No data to display. Process text on the left.</p>';
+            tableContainer.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">📊</div>
+                    <h3>尚未載入資料</h3>
+                    <p>請使用下方的「匯入 CSV」按鈕載入筆電規格資料</p>
+                </div>
+            `;
             return;
         }
 
@@ -79,127 +69,54 @@ document.addEventListener('DOMContentLoaded', () => {
         tableContainer.appendChild(table);
     };
     
-    const handleTextFile = (file) => {
-        if (!file || !file.type.match('text.*')) {
-            alert("Please select a valid text file (.txt).");
-            return;
-        }
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            textInput.value = e.target.result; // Put content into the textarea
-            fileDropZone.querySelector('span').textContent = `Loaded: ${file.name}`;
-            fileDropZone.classList.add('file-loaded');
-        };
-        reader.readAsText(file);
-    };
-
     // --- EVENT LISTENERS ---
-    
-    // Tab switching logic
-    loadFileTabBtn.addEventListener('click', () => {
-        loadFileTabBtn.classList.add('active');
-        pasteTextTabBtn.classList.remove('active');
-        fileUploadView.classList.add('active');
-        pasteTextView.classList.remove('active');
-    });
-
-    pasteTextTabBtn.addEventListener('click', () => {
-        pasteTextTabBtn.classList.add('active');
-        loadFileTabBtn.classList.remove('active');
-        pasteTextView.classList.add('active');
-        fileUploadView.classList.remove('active');
-    });
-    
-    // File Drop Zone Logic
-    fileDropZone.addEventListener('click', () => textFileInput.click());
-    fileDropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        fileDropZone.classList.add('dragover');
-    });
-    fileDropZone.addEventListener('dragleave', () => {
-        fileDropZone.classList.remove('dragover');
-    });
-    fileDropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        fileDropZone.classList.remove('dragover');
-        if (e.dataTransfer.files.length) {
-            handleTextFile(e.dataTransfer.files[0]);
-        }
-    });
-    textFileInput.addEventListener('change', (e) => {
-        if (e.target.files.length) {
-            handleTextFile(e.target.files[0]);
-        }
-    });
-
-    // Load Rules Button
-    loadRuleBtn.addEventListener('click', () => ruleUploader.click());
-    ruleUploader.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                state.customRules = JSON.parse(e.target.result);
-                alert('Rules loaded successfully!');
-            } catch (error) {
-                alert('Failed to parse JSON rules.');
-                state.customRules = null;
-            }
-        };
-        reader.readAsText(file);
-        event.target.value = '';
-    });
-
-    // Process Button
-    processBtn.addEventListener('click', async () => {
-        const textContent = textInput.value;
-        const tempRegex = tempRegexInput.value.split('\n').filter(r => r.trim() !== '');
-        if (!textContent.trim()) {
-            alert('Text content is empty. Please paste text or upload a file.');
-            return;
-        }
-        showLoading('Processing data...');
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/process`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    text_content: textContent,
-                    custom_rules: state.customRules,
-                    temp_regex: tempRegex,
-                }),
-            });
-            if (!response.ok) throw new Error((await response.json()).detail);
-            const result = await response.json();
-            if (result.error) {
-                alert(`Error: ${result.error}`);
-                state.tableData = [];
-            } else {
-                state.tableData = result.data;
-            }
-            renderTable();
-        } catch (error) {
-            alert(`Failed to process: ${error.message}`);
-        } finally {
-            hideLoading();
-        }
-    });
 
     // CSV Import Button
     importCsvBtn.addEventListener('click', () => csvUploader.click());
     csvUploader.addEventListener('change', (event) => {
         const file = event.target.files[0];
         if (!file) return;
+        
+        console.log('CSV file selected:', file.name, 'Size:', file.size, 'Type:', file.type);
+        
         Papa.parse(file, {
             header: true,
             skipEmptyLines: true,
+            encoding: 'UTF-8',
             complete: (results) => {
-                state.tableData = results.data;
+                console.log('CSV parse results:', results);
+                
+                if (results.errors && results.errors.length > 0) {
+                    console.error('CSV parsing errors:', results.errors);
+                    alert(`CSV parsing errors: ${results.errors.map(e => e.message).join(', ')}`);
+                    return;
+                }
+                
+                if (!results.data || results.data.length === 0) {
+                    alert('CSV file appears to be empty or has no valid data rows.');
+                    return;
+                }
+                
+                // Filter out completely empty rows
+                const filteredData = results.data.filter(row => {
+                    return Object.values(row).some(value => value && value.trim() !== '');
+                });
+                
+                console.log(`Filtered data: ${filteredData.length} rows from ${results.data.length} total`);
+                
+                if (filteredData.length === 0) {
+                    alert('No valid data found in CSV file.');
+                    return;
+                }
+                
+                state.tableData = filteredData;
                 renderTable();
-                alert('CSV imported successfully!');
+                alert(`CSV imported successfully! Loaded ${filteredData.length} rows.`);
             },
-            error: () => alert('Failed to import CSV.'),
+            error: (error) => {
+                console.error('CSV parsing error:', error);
+                alert(`Failed to import CSV: ${error.message || 'Unknown error'}`);
+            },
         });
         event.target.value = '';
     });
