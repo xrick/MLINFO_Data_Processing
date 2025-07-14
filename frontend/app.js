@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- BUTTONS ---
     const importCsvBtn = document.getElementById('import-csv-btn');
     const exportCsvBtn = document.getElementById('export-csv-btn');
+    const clearDataBtn = document.getElementById('clear-data-btn');
     const ingestDbBtn = document.getElementById('ingest-db-btn');
 
     // --- API CONFIG ---
@@ -40,13 +41,40 @@ document.addEventListener('DOMContentLoaded', () => {
         filePathText.textContent = '';
     };
 
+    const resetFileInput = () => {
+        // 重置檔案選擇器
+        csvUploader.value = '';
+        // 創建新的檔案選擇器元素來確保完全重置
+        const newFileInput = csvUploader.cloneNode(true);
+        csvUploader.parentNode.replaceChild(newFileInput, csvUploader);
+        // 重新綁定事件監聽器
+        newFileInput.addEventListener('change', handleFileUpload);
+        // 更新參考
+        window.csvUploader = newFileInput;
+    };
+
+    const clearAllData = () => {
+        // 清除狀態
+        state.tableData = [];
+        state.customRules = null;
+        
+        // 清除顯示
+        hideFilePath();
+        renderTable();
+        
+        // 重置檔案選擇器
+        resetFileInput();
+        
+        console.log('✅ 所有資料已清除');
+    };
+
     const renderTable = () => {
         if (state.tableData.length === 0) {
             tableContainer.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">📊</div>
                     <h3>尚未載入資料</h3>
-                    <p>請使用下方的「匯入 CSV」按鈕載入筆電規格資料</p>
+                    <p>請使用下方的「匯入 CSV 並解析」按鈕載入筆電規格資料</p>
                 </div>
             `;
             return;
@@ -81,11 +109,8 @@ document.addEventListener('DOMContentLoaded', () => {
         tableContainer.appendChild(table);
     };
     
-    // --- EVENT LISTENERS ---
-
-    // CSV Import and Parse Button
-    importCsvBtn.addEventListener('click', () => csvUploader.click());
-    csvUploader.addEventListener('change', async (event) => {
+    // --- FILE UPLOAD HANDLER ---
+    const handleFileUpload = async (event) => {
         const file = event.target.files[0];
         if (!file) return;
         
@@ -131,6 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     alert('必須輸入 modeltype！');
                     hideFilePath();
                     hideLoading();
+                    resetFileInput();
                     return;
                 }
                 // 再次呼叫 API，補送 user_modeltype
@@ -153,6 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderTable();
                 alert(`CSV 解析成功！已處理 ${retryResult.data.length} 筆記錄`);
                 hideLoading();
+                resetFileInput();
                 return;
             }
             
@@ -169,7 +196,26 @@ document.addEventListener('DOMContentLoaded', () => {
             hideFilePath(); // 隱藏檔案路徑
         } finally {
             hideLoading();
-            event.target.value = ''; // 清除檔案選擇
+            resetFileInput(); // 重置檔案選擇器
+        }
+    };
+    
+    // --- EVENT LISTENERS ---
+
+    // CSV Import and Parse Button
+    importCsvBtn.addEventListener('click', () => csvUploader.click());
+    csvUploader.addEventListener('change', handleFileUpload);
+    
+    // Clear Data Button
+    clearDataBtn.addEventListener('click', () => {
+        if (state.tableData.length === 0) {
+            alert('目前沒有資料需要清除');
+            return;
+        }
+        
+        if (confirm('確定要清除所有已載入的資料嗎？此操作無法復原。')) {
+            clearAllData();
+            alert('資料已清除');
         }
     });
     
