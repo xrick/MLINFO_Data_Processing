@@ -1,11 +1,8 @@
 [
 	[
 		{
-			"model_count":4,
-			"model_type":"938",
-			"default_output_path":"./tmpcsv.csv"
+			"default_output_path":"./tmpcsv"
 		}
-
 	],
 	[
 		{

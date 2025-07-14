@@ -131,3 +131,22 @@
     font-size: 1.5em;
   }
   .hidden { display: none; }
+  
+  /* 檔案路徑顯示樣式 */
+  .file-path-display {
+    background: var(--color-primary-light);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 0.9em;
+  }
+  .file-path-label {
+    color: var(--color-primary);
+    font-weight: 500;
+  }
+  .file-path-text {
+    color: var(--color-text);
+    font-family: monospace;
+    word-break: break-all;
+  }

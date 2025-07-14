@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const tableContainer = document.getElementById('table-container');
     const loadingOverlay = document.getElementById('loading-overlay');
     const loadingMessage = document.getElementById('loading-message');
+    const filePathDisplay = document.getElementById('file-path-display');
+    const filePathText = document.getElementById('file-path-text');
 
     // --- BUTTONS ---
     const importCsvBtn = document.getElementById('import-csv-btn');
@@ -26,6 +28,16 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const hideLoading = () => {
         loadingOverlay.classList.add('hidden');
+    };
+    
+    const showFilePath = (filePath) => {
+        filePathText.textContent = filePath;
+        filePathDisplay.classList.remove('hidden');
+    };
+    
+    const hideFilePath = () => {
+        filePathDisplay.classList.add('hidden');
+        filePathText.textContent = '';
     };
 
     const renderTable = () => {
@@ -71,55 +83,105 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- EVENT LISTENERS ---
 
-    // CSV Import Button
+    // CSV Import and Parse Button
     importCsvBtn.addEventListener('click', () => csvUploader.click());
-    csvUploader.addEventListener('change', (event) => {
+    csvUploader.addEventListener('change', async (event) => {
         const file = event.target.files[0];
         if (!file) return;
         
         console.log('CSV file selected:', file.name, 'Size:', file.size, 'Type:', file.type);
         
-        Papa.parse(file, {
-            header: true,
-            skipEmptyLines: true,
-            encoding: 'UTF-8',
-            complete: (results) => {
-                console.log('CSV parse results:', results);
-                
-                if (results.errors && results.errors.length > 0) {
-                    console.error('CSV parsing errors:', results.errors);
-                    alert(`CSV parsing errors: ${results.errors.map(e => e.message).join(', ')}`);
+        // 顯示檔案路徑
+        showFilePath(file.name);
+        
+        try {
+            // 顯示載入狀態
+            showLoading('正在解析 CSV 檔案...');
+            
+            // 讀取檔案內容
+            const fileContent = await readFileAsText(file);
+            
+            // 呼叫後端 API 進行解析
+            const response = await fetch(`${API_BASE_URL}/api/process`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    text_content: fileContent,
+                    custom_rules: state.customRules,
+                    temp_regex: null,
+                    file_name: file.name
+                }),
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || `HTTP ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            if (!result.data || result.data.length === 0) {
+                throw new Error('解析結果為空，請檢查 CSV 檔案格式');
+            }
+            
+            // 處理需用戶輸入 modeltype 的情境
+            if (result.require_modeltype_input) {
+                let userModeltype = prompt('無法自動判斷型號，請輸入 modeltype（如 960、928...）：');
+                if (!userModeltype || !userModeltype.trim()) {
+                    alert('必須輸入 modeltype！');
+                    hideFilePath();
+                    hideLoading();
                     return;
                 }
-                
-                if (!results.data || results.data.length === 0) {
-                    alert('CSV file appears to be empty or has no valid data rows.');
-                    return;
-                }
-                
-                // Filter out completely empty rows
-                const filteredData = results.data.filter(row => {
-                    return Object.values(row).some(value => value && value.trim() !== '');
+                // 再次呼叫 API，補送 user_modeltype
+                const retryResponse = await fetch(`${API_BASE_URL}/api/process`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text_content: fileContent,
+                        custom_rules: state.customRules,
+                        temp_regex: null,
+                        file_name: file.name,
+                        user_modeltype: userModeltype.trim()
+                    }),
                 });
-                
-                console.log(`Filtered data: ${filteredData.length} rows from ${results.data.length} total`);
-                
-                if (filteredData.length === 0) {
-                    alert('No valid data found in CSV file.');
-                    return;
+                const retryResult = await retryResponse.json();
+                if (!retryResult.data || retryResult.data.length === 0) {
+                    throw new Error('解析結果為空，請檢查 CSV 檔案格式');
                 }
-                
-                state.tableData = filteredData;
+                state.tableData = retryResult.data;
                 renderTable();
-                alert(`CSV imported successfully! Loaded ${filteredData.length} rows.`);
-            },
-            error: (error) => {
-                console.error('CSV parsing error:', error);
-                alert(`Failed to import CSV: ${error.message || 'Unknown error'}`);
-            },
-        });
-        event.target.value = '';
+                alert(`CSV 解析成功！已處理 ${retryResult.data.length} 筆記錄`);
+                hideLoading();
+                return;
+            }
+            
+            // 更新狀態和顯示
+            state.tableData = result.data;
+            renderTable();
+            
+            console.log(`CSV 解析完成：${result.data.length} 筆記錄`);
+            alert(`CSV 解析成功！已處理 ${result.data.length} 筆記錄`);
+            
+        } catch (error) {
+            console.error('CSV 處理失敗:', error);
+            alert(`CSV 處理失敗: ${error.message}`);
+            hideFilePath(); // 隱藏檔案路徑
+        } finally {
+            hideLoading();
+            event.target.value = ''; // 清除檔案選擇
+        }
     });
+    
+    // 讀取檔案內容的 helper function
+    const readFileAsText = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = (e) => reject(new Error('檔案讀取失敗'));
+            reader.readAsText(file, 'UTF-8');
+        });
+    };
 
     // CSV Export Button
     exportCsvBtn.addEventListener('click', () => {

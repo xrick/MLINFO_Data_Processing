@@ -260,6 +260,21 @@ class TestCSVParser2Integration(unittest.TestCase):
         except Exception as e:
             self.fail(f"完整解析流程失敗: {str(e)}")
 
+    def test_parse_960csv(self):
+        """測試 960.csv 是否能正確解析且 modeltype 不為 938"""
+        testdata_path = Path(__file__).parent.parent.parent.parent / "testdata" / "960.csv"
+        self.parser._rules_file = Path(__file__).parent / "../../csvparse2/rules.json"
+        self.parser.beforeParse(str(testdata_path))
+        self.parser.inParse()
+        # 取得結果
+        result = self.parser.processed_result
+        self.assertIsNotNone(result)
+        self.assertGreater(len(result), 0)
+        # 驗證每一列的 modeltype 不為 938
+        for row in result:
+            if isinstance(row, dict):
+                self.assertNotEqual(row.get("modeltype"), "938")
+
 
 def run_tests():
     """執行所有測試"""

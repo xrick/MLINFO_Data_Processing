@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLINFO 資料處理系統 - UI Prototype</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-database"></i>
+                <span>MLINFO 資料處理系統</span>
+            </div>
+            <div class="nav-menu">
+                <a href="#dashboard" class="nav-link active">
+                    <i class="fas fa-chart-dashboard"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#reports" class="nav-link">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Reports</span>
+                </a>
+                <a href="#analytics" class="nav-link">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="#settings" class="nav-link">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+            <div class="nav-actions">
+                <button class="btn-secondary" id="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Log Out
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1 class="hero-title">資料處理應用程式介面</h1>
+                <p class="hero-subtitle">高效處理多種格式數據，簡化您的資料轉換流程。</p>
+                <div class="hero-actions">
+                    <button class="btn-primary" id="start-processing">
+                        <i class="fas fa-play"></i>
+                        立即體驗
+                    </button>
+                    <button class="btn-outline" id="learn-more">
+                        <i class="fas fa-info-circle"></i>
+                        了解更多
+                    </button>
+                </div>
+            </div>
+            <div class="hero-stats">
+                <div class="stat-card">
+                    <div class="stat-number">1,543</div>
+                    <div class="stat-label">Total Processed Data</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">94.2%</div>
+                    <div class="stat-label">Processing Data</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">578</div>
+                    <div class="stat-label">Error Data</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">1,108</div>
+                    <div class="stat-label">Average Processing Time</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Workflow Section -->
+        <section class="workflow-section">
+            <div class="container">
+                <h2 class="section-title">工作流程</h2>
+                
+                <!-- Step 1: Upload -->
+                <div class="workflow-step">
+                    <div class="step-header">
+                        <div class="step-number">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <h3>匯入資料</h3>
+                        <p>從左欄上傳並解析資料</p>
+                    </div>
+                    
+                    <div class="step-content">
+                        <div class="upload-section">
+                            <div class="upload-area" id="upload-area">
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <div class="upload-text">
+                                    <h4>Drag and drop files here</h4>
+                                    <p>or select from device.</p>
+                                </div>
+                                <div class="upload-formats">
+                                    <span class="format-tag">TXT</span>
+                                    <span class="format-tag">CSV</span>
+                                    <span class="format-tag">XLSX</span>
+                                    <span class="format-tag">PDF</span>
+                                </div>
+                                <button class="btn-upload" id="select-files">
+                                    <i class="fas fa-folder-open"></i>
+                                    選擇檔案
+                                </button>
+                            </div>
+                            <input type="file" id="file-input" multiple accept=".txt,.csv,.xlsx,.pdf" hidden>
+                        </div>
+                        
+                        <div class="upload-info">
+                            <div class="info-card">
+                                <h4><i class="fas fa-file-import"></i> 支援多種檔案格式</h4>
+                                <p>輕鬆匯入 txt、csv、xlsx、pdf 等多種格式檔案。</p>
+                            </div>
+                            <div class="info-card">
+                                <h4><i class="fas fa-brain"></i> 智能解析選項</h4>
+                                <p>二層式下拉選單提供針對不同檔案格式的專屬解析方法。</p>
+                            </div>
+                            <div class="upload-note">
+                                <p>選擇檔案格式後，系統會自動顯示對應的解析方法選項。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Review -->
+                <div class="workflow-step">
+                    <div class="step-header">
+                        <div class="step-number">
+                            <i class="fas fa-table"></i>
+                        </div>
+                        <h3>表格檢視</h3>
+                        <p>在右欄檢視解析後的資料表格</p>
+                    </div>
+                    
+                    <div class="step-content">
+                        <div class="table-section">
+                            <div class="table-controls">
+                                <div class="table-actions">
+                                    <button class="btn-table" id="filter-btn">
+                                        <i class="fas fa-filter"></i>
+                                        篩選
+                                    </button>
+                                    <button class="btn-table" id="sort-btn">
+                                        <i class="fas fa-sort"></i>
+                                        排序
+                                    </button>
+                                    <button class="btn-table" id="search-btn">
+                                        <i class="fas fa-search"></i>
+                                        搜尋
+                                    </button>
+                                </div>
+                                <div class="table-info">
+                                    <span class="record-count">總計 <strong>1,543</strong> 筆記錄</span>
+                                </div>
+                            </div>
+                            
+                            <div class="table-container">
+                                <table class="data-table" id="prototype-table">
+                                    <thead>
+                                        <tr>
+                                            <th><input type="checkbox" id="select-all"></th>
+                                            <th>Model Type <i class="fas fa-sort"></i></th>
+                                            <th>Version <i class="fas fa-sort"></i></th>
+                                            <th>Model Name <i class="fas fa-sort"></i></th>
+                                            <th>CPU <i class="fas fa-sort"></i></th>
+                                            <th>GPU <i class="fas fa-sort"></i></th>
+                                            <th>Memory <i class="fas fa-sort"></i></th>
+                                            <th>Storage <i class="fas fa-sort"></i></th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><input type="checkbox"></td>
+                                            <td><span class="badge badge-primary">938</span></td>
+                                            <td>MP_v1.0</td>
+                                            <td>APX938</td>
+                                            <td>AMD Ryzen 5</td>
+                                            <td>Radeon Graphics</td>
+                                            <td>16GB DDR4</td>
+                                            <td>512GB SSD</td>
+                                            <td>
+                                                <button class="btn-icon" title="編輯">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn-icon" title="刪除">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><input type="checkbox"></td>
+                                            <td><span class="badge badge-primary">938</span></td>
+                                            <td>PVT_v1.4</td>
+                                            <td>ARB938</td>
+                                            <td>AMD Ryzen 7</td>
+                                            <td>Radeon Graphics</td>
+                                            <td>32GB DDR4</td>
+                                            <td>1TB SSD</td>
+                                            <td>
+                                                <button class="btn-icon" title="編輯">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn-icon" title="刪除">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><input type="checkbox"></td>
+                                            <td><span class="badge badge-success">938</span></td>
+                                            <td>PVT_v1.0</td>
+                                            <td>AHP938U</td>
+                                            <td>Intel Core i7</td>
+                                            <td>NVIDIA RTX</td>
+                                            <td>32GB DDR5</td>
+                                            <td>2TB SSD</td>
+                                            <td>
+                                                <button class="btn-icon" title="編輯">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn-icon" title="刪除">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="table-pagination">
+                                <div class="pagination-info">
+                                    顯示 1-3 筆，共 1,543 筆記錄
+                                </div>
+                                <div class="pagination-controls">
+                                    <button class="btn-pagination" disabled>
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <span class="page-numbers">
+                                        <button class="btn-page active">1</button>
+                                        <button class="btn-page">2</button>
+                                        <button class="btn-page">3</button>
+                                        <span>...</span>
+                                        <button class="btn-page">515</button>
+                                    </span>
+                                    <button class="btn-pagination">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Export -->
+                <div class="workflow-step">
+                    <div class="step-header">
+                        <div class="step-number">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <h3>資料輸出</h3>
+                        <p>選擇適合的按鈕匯出或儲存資料</p>
+                    </div>
+                    
+                    <div class="step-content">
+                        <div class="export-section">
+                            <div class="export-actions">
+                                <button class="btn-export primary" id="import-database">
+                                    <i class="fas fa-database"></i>
+                                    <div class="btn-content">
+                                        <span class="btn-title">Import database</span>
+                                        <span class="btn-subtitle">匯入到資料庫</span>
+                                    </div>
+                                </button>
+                                <button class="btn-export secondary" id="export-csv">
+                                    <i class="fas fa-file-csv"></i>
+                                    <div class="btn-content">
+                                        <span class="btn-title">Export to CSV</span>
+                                        <span class="btn-subtitle">匯出為 CSV 檔案</span>
+                                    </div>
+                                </button>
+                                <button class="btn-export tertiary" id="refresh-data">
+                                    <i class="fas fa-sync-alt"></i>
+                                    <div class="btn-content">
+                                        <span class="btn-title">Refresh Data</span>
+                                        <span class="btn-subtitle">重新整理資料</span>
+                                    </div>
+                                </button>
+                            </div>
+                            
+                            <div class="export-options">
+                                <div class="option-group">
+                                    <h4><i class="fas fa-cog"></i> 匯出設定</h4>
+                                    <div class="option-row">
+                                        <label>
+                                            <input type="checkbox" checked>
+                                            <span>包含標題列</span>
+                                        </label>
+                                        <label>
+                                            <input type="checkbox">
+                                            <span>僅匯出選取項目</span>
+                                        </label>
+                                    </div>
+                                    <div class="option-row">
+                                        <label>編碼格式：</label>
+                                        <select>
+                                            <option>UTF-8</option>
+                                            <option>Big5</option>
+                                            <option>GBK</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quality Dashboard -->
+        <section class="dashboard-section">
+            <div class="container">
+                <h2 class="section-title">資料品質儀表板</h2>
+                
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3>資料完整性</h3>
+                            <div class="progress-circle" data-progress="93">
+                                <span class="progress-text">93%</span>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="metric">
+                                <span class="metric-label">完整記錄</span>
+                                <span class="metric-value">1,434 筆</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">缺失記錄</span>
+                                <span class="metric-value text-warning">109 筆</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3>錯誤分析</h3>
+                            <div class="progress-circle" data-progress="84">
+                                <span class="progress-text">84%</span>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="metric">
+                                <span class="metric-label">有效資料</span>
+                                <span class="metric-value">1,296 筆</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">錯誤資料</span>
+                                <span class="metric-value text-danger">247 筆</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3>處理效能</h3>
+                            <div class="performance-indicator">
+                                <i class="fas fa-bolt text-success"></i>
+                                <span>優秀</span>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="metric">
+                                <span class="metric-label">平均處理時間</span>
+                                <span class="metric-value">2.3 秒</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">吞吐量</span>
+                                <span class="metric-value">670 記錄/分鐘</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card wide">
+                        <div class="card-header">
+                            <h3>資料品質趨勢</h3>
+                            <div class="chart-controls">
+                                <button class="btn-chart active">日</button>
+                                <button class="btn-chart">週</button>
+                                <button class="btn-chart">月</button>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="chart-placeholder">
+                                <div class="chart-line"></div>
+                                <div class="chart-points">
+                                    <div class="chart-point" style="left: 10%; bottom: 30%"></div>
+                                    <div class="chart-point" style="left: 25%; bottom: 45%"></div>
+                                    <div class="chart-point" style="left: 40%; bottom: 60%"></div>
+                                    <div class="chart-point" style="left: 55%; bottom: 55%"></div>
+                                    <div class="chart-point" style="left: 70%; bottom: 70%"></div>
+                                    <div class="chart-point" style="left: 85%; bottom: 80%"></div>
+                                </div>
+                                <div class="chart-labels">
+                                    <span>週一</span>
+                                    <span>週二</span>
+                                    <span>週三</span>
+                                    <span>週四</span>
+                                    <span>週五</span>
+                                    <span>週六</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p id="loading-message">處理中...</p>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div id="success-toast" class="toast toast-success hidden">
+        <i class="fas fa-check-circle"></i>
+        <span>操作成功完成！</span>
+        <button class="toast-close">&times;</button>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

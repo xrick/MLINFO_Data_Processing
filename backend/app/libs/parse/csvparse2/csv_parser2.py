@@ -1,4 +1,3 @@
-
 # import pandas as pd
 import json
 # import re
@@ -24,12 +23,11 @@ class CSVParser2(ParseBase):
     def __init__(self):
         super().__init__()
         self.rawcsv = None
+        self.processed_csv = None
         self.datalist = None
         self._rules = None
         self._rules_file = Path(__file__).parent / "rules.json"
         self.headers = None
-        self.model_count = 0
-        self.model_type = None
         self.processed_result = None
         self.default_output_path = None
 
@@ -48,27 +46,33 @@ class CSVParser2(ParseBase):
             # 設置輸入資料
             self.rawcsv = data
             
-            # 載入解析規則
-            self._rules = self._load_rules()
-            if not self._rules:
-                logger.error("無法載入解析規則")
-                return False
-            
-            # 載入 CSV
+            # 載入 CSV 並自動檢測格式
             self.datalist = self._load_csv(self.rawcsv)
             
-            # 設置標題
-            self.headers = [
-                rule.get("column_name", f"欄位{i+1}")
-                for i, rule in enumerate(self._rules[1])
-            ]
+            # 自動檢測 CSV 格式並決定處理方式
+            if self._is_structured_specs_csv():
+                # 使用規則驅動解析（適用於筆電規格CSV）
+                logger.info("檢測到結構化規格 CSV，使用規則驅動解析")
+                self._rules = self._load_rules()
+                if not self._rules:
+                    logger.error("無法載入解析規則")
+                    return False
+                
+                # 設置標題
+                self.headers = [
+                    rule.get("column_name", f"欄位{i+1}")
+                    for i, rule in enumerate(self._rules[1])
+                ]
+                
+                # 設置模型參數
+                self.default_output_path = self._rules[0][0].get("default_output_path", "./output.csv")
+                
+            else:
+                # 使用動態解析（適用於一般CSV）
+                logger.info("檢測到一般 CSV 格式，使用動態解析")
+                self._setup_dynamic_parsing()
             
-            # 設置模型參數
-            self.model_count = self._rules[0][0]["model_count"]
-            self.model_type = self._rules[0][0]["model_type"]
-            self.default_output_path = self._rules[0][0].get("default_output_path", "./output.csv")
-            
-            logger.info(f"解析前準備完成 - 模型數量: {self.model_count}, 類型: {self.model_type}")
+            logger.info(f"解析前準備完成 - 標題: {self.headers}")
             return True
             
         except Exception as e:
@@ -83,7 +87,13 @@ class CSVParser2(ParseBase):
         Returns:
             List[Dict]: 解析結果列表
         """
-        self.collect_results()
+        if self._rules is None:
+            # 動態解析模式
+            self._dynamic_collect_results()
+        else:
+            # 規則驅動解析模式
+            self.collect_results()
+        
         return self.processed_result
 
     
@@ -116,11 +126,66 @@ class CSVParser2(ParseBase):
     def _load_csv(self, file_path):
         with open(file_path, mode='r', encoding='utf-8-sig') as f:
             return list(csv.reader(f))
+    
+    def _is_structured_specs_csv(self) -> bool:
+        """
+        檢測是否為結構化規格 CSV（如 raw_938.csv 格式）
+        
+        Returns:
+            bool: 是否為結構化規格格式
+        """
+        if not self.datalist or len(self.datalist) < 3:
+            return False
+        
+        # 檢查是否包含筆電規格的關鍵詞
+        spec_keywords = ["Model", "Model Name", "CPU", "GPU", "Memory", "LCD", "Battery", "Stage", "Version"]
+        
+        # 檢查前幾行是否包含這些關鍵詞
+        content_text = " ".join([" ".join(row) for row in self.datalist[:10]])
+        
+        keyword_count = sum(1 for keyword in spec_keywords if keyword in content_text)
+        
+        # 如果包含3個以上的規格關鍵詞，認為是結構化規格CSV
+        return keyword_count >= 3
+    
+    def _setup_dynamic_parsing(self):
+        """
+        設置動態解析模式（適用於一般CSV）
+        """
+        if not self.datalist:
+            raise Exception("CSV 資料為空")
+        
+        # 使用第一行作為標題行
+        if len(self.datalist) > 0:
+            self.headers = self.datalist[0]
+            # 移除標題行
+            self.datalist = self.datalist[1:]
+        else:
+            self.headers = []
+        
+        # 設置動態參數
+        self.default_output_path = "./output.csv"
+        
+        # 創建動態規則（不進行規則匹配，直接使用原始資料）
+        self._rules = None
+        
+        logger.info(f"動態解析設定 - 標題: {self.headers}, 資料行數: {len(self.datalist)}")
 
-
+    def _dynamic_collect_results(self):
+        """
+        動態收集結果（適用於一般CSV）
+        """
+        self.processed_result = []
+        
+        for row in self.datalist:
+            # 確保行資料長度與標題匹配
+            padded_row = row + [''] * (len(self.headers) - len(row))
+            self.processed_result.append(padded_row[:len(self.headers)])
+        
+        logger.info(f"動態解析完成 - 處理了 {len(self.processed_result)} 行資料")
 
     def collect_results(self):
-        result_rows = [[] for _ in range(self.model_count)]
+        result_rows = [[] for _ in range(len(self.datalist))]
 
         for rule_index, rule in enumerate(self._rules[1]):
             keywords = rule.get("keywords", [])
@@ -150,7 +215,7 @@ class CSVParser2(ParseBase):
 
             if len(matched_blocks) == 0:
                 print(f"⚠️ 規則 {rule_index+1} - {column_name}: 找不到關鍵字 {keywords}，全欄填空白")
-                for idx in range(self.model_count):
+                for idx in range(len(self.datalist)):
                     result_rows[idx].append("")
             else:
                 if len(matched_blocks) > 1:
@@ -158,7 +223,7 @@ class CSVParser2(ParseBase):
                 first_index, block = matched_blocks[0]
                 print(f"🔍 規則 {rule_index+1} - {column_name}: 找到關鍵字 {keywords} 於第 {first_index+1} 行")
 
-                for idx in range(self.model_count):
+                for idx in range(len(self.datalist)):
                     col_index = 2 + idx
                     if all(col_index < len(row) for row in block):
                         lines = []
@@ -176,17 +241,49 @@ class CSVParser2(ParseBase):
                         result_rows[idx].append("")
                         print(f"  → 機種{idx+1}: ⚠️警告：該機種此處無資料")
 
-        self.processed_result=result_rows
+        # 將結果轉為 dict 並存到 processed_result
+        self.processed_result = []
+        for row in result_rows:
+            # 只根據 headers 組裝欄位，不自動加 modeltype
+            row_dict = {}
+            for i, header in enumerate(self.headers):
+                row_dict[header] = row[i] if i < len(row) else ""
+            self.processed_result.append(row_dict)
     
 
     # def write_csv(self, output_path, result_rows, headers, model_type):
     def write_csv(self):
-        headers = ["modeltype"] + self.headers
+        if self._rules is None:
+            # 動態模式：直接使用標題
+            headers = self.headers
+        else:
+            # 規則模式：添加 modeltype 欄位
+            headers = ["modeltype"] + self.headers
+        
+        # 建立記憶體中的 processed_csv 資料結構
+        self.processed_csv = []
+        
+        for row in self.processed_result:
+            if self._rules is None:
+                # 動態模式：直接映射資料
+                row_dict = {}
+                for i, header in enumerate(self.headers):
+                    row_dict[header] = row[i] if i < len(row) else ""
+            else:
+                # 規則模式：添加 modeltype
+                row_dict = {"modeltype": "dynamic"}
+                for i, header in enumerate(self.headers):
+                    row_dict[header] = row[i] if i < len(row) else ""
+            self.processed_csv.append(row_dict)
+        
+        print(f"✅ 已建立記憶體資料：{len(self.processed_csv)} 筆記錄")
+        
+        # 保持原有的檔案輸出功能
         with open(self.default_output_path, "w", encoding="utf-8-sig", newline="") as f:
             writer = csv.writer(f)
             writer.writerow(headers)
             for row in self.processed_result:
-                writer.writerow([self.model_type] + row)
+                writer.writerow([row[i] for i in range(len(row))])
         print(f"✅ 已輸出至：{self.default_output_path}")
 
 # def main():

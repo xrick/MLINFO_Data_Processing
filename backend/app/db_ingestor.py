@@ -60,9 +60,24 @@ class DBIngestor:
     def _ingest_to_duckdb(self, df: pd.DataFrame) -> int:
         print("--- Ingesting to DuckDB ---")
         try:
+            # Check if DuckDB file exists
+            db_exists = os.path.exists(self.DUCKDB_FILE)
+            if db_exists:
+                print(f"Found existing DuckDB file '{self.DUCKDB_FILE}'. Appending data...")
+            else:
+                print(f"DuckDB file '{self.DUCKDB_FILE}' not found. Creating new database...")
+            
             with duckdb.connect(database=self.DUCKDB_FILE, read_only=False) as con:
+                # Check if table exists using DuckDB syntax
+                table_check = con.execute("SELECT table_name FROM information_schema.tables WHERE table_name = 'specs'").fetchone()
+                if table_check:
+                    print("Found existing 'specs' table. Appending data...")
+                else:
+                    print("Creating new 'specs' table...")
+                
                 con.execute(f"CREATE TABLE IF NOT EXISTS specs ({', '.join([f'{col} VARCHAR' for col in self.ALL_FIELDS])})")
                 con.execute("INSERT INTO specs SELECT * FROM df")
+            
             print(f"Successfully appended {len(df)} rows to DuckDB 'specs' table.")
             return len(df)
         except Exception as e:
@@ -72,6 +87,7 @@ class DBIngestor:
     def _ingest_to_milvus(self, df: pd.DataFrame) -> int:
         print("--- Ingesting to Milvus ---")
         try:
+            print(f"Connecting to Milvus at {self.MILVUS_HOST}:{self.MILVUS_PORT}...")
             connections.connect("default", host=self.MILVUS_HOST, port=self.MILVUS_PORT)
 
             if not utility.has_collection(self.COLLECTION_NAME):
@@ -83,14 +99,17 @@ class DBIngestor:
                 schema = CollectionSchema(fields, "Notebook Specifications Knowledge Base")
                 collection = Collection(self.COLLECTION_NAME, schema)
                 
+                print("Creating vector index for embedding field...")
                 index_params = {"metric_type": "L2", "index_type": "IVF_FLAT", "params": {"nlist": 128}}
                 collection.create_index("embedding", index_params)
+                print("New collection created successfully.")
             else:
-                print(f"Found existing collection '{self.COLLECTION_NAME}'.")
+                print(f"Found existing collection '{self.COLLECTION_NAME}'. Appending data...")
                 collection = Collection(self.COLLECTION_NAME)
 
             # Filter VECTOR_FIELDS to only include columns that exist in the DataFrame
             available_vector_fields = [field for field in self.VECTOR_FIELDS if field in df.columns]
+            print(f"Generating embeddings for {len(available_vector_fields)} vector fields...")
             
             texts_to_embed = df[available_vector_fields].apply(
                 lambda row: ' '.join([f"{col}: {val}" for col, val in row.items() if val]), 
@@ -99,12 +118,13 @@ class DBIngestor:
             
             vectors = self.embedding_model.encode(texts_to_embed, show_progress_bar=True)
             
+            print("Preparing data for insertion...")
             entities = [df[col].tolist() for col in self.ALL_FIELDS]
             entities.append(vectors.tolist())
             
             collection.insert(entities)
             collection.flush()
-            print(f"Successfully inserted {len(df)} entities into Milvus.")
+            print(f"Successfully appended {len(df)} entities to Milvus collection '{self.COLLECTION_NAME}'.")
             return len(df)
         except Exception as e:
             print(f"Error ingesting to Milvus: {e}")

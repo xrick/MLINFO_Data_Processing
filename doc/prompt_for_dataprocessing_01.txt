@@ -1,0 +1,30 @@
+請依據以下需求進行修改:
+1.將按鈕[匯入CSV]改成[匯入CSV並解析]
+2.現在由左到右共有[匯入CSV並解析]、[匯出CSV]、[匯入資料庫]四個按鈕
+4.當按下[匯入CSV並解析]，讓使用者選擇未解析過的CSV檔，並在頁面上方顯示匯入的資料路徑
+5.當使用者按下[匯入CSV並解析]，則開始解析匯入的資料，並將解析的結果呈現在table-container中
+6.當使用者按下[匯入CSV並解析]，其對應的後端程式碼為:
+  ```python
+  @app.post("/api/process", response_model=ProcessResponse, tags=["Processing"])
+def process_text_content(request: ProcessRequest):
+    # This endpoint is temporarily disabled during architecture refactoring
+    # ParseBase system will be integrated in future updates
+    raise HTTPException(
+        status_code=501, 
+        detail="Processing endpoint temporarily unavailable during system refactoring. Please use ParseBase CSV parsers directly."
+    )
+  ```
+  請修改這部份程式碼，解析csv使用strategy pattern，並初始化csv_parser2.py為實體進行解析
+7.也請修改以下write_csv程式碼:
+```python
+def write_csv(self):
+        headers = ["modeltype"] + self.headers
+        with open(self.default_output_path, "w", encoding="utf-8-sig", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(headers)
+            for row in self.processed_result:
+                writer.writerow([self.model_type] + row)
+        print(f"✅ 已輸出至：{self.default_output_path}")
+
+```
+請將在記憶體中已處理完成的csv內容，對assign給self.processed_csv，並呈現在table-container中

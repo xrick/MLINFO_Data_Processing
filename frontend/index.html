@@ -16,16 +16,22 @@
             <h1>MLINFO 資料處理系統</h1>
             <p class="subtitle">筆電規格資料匯入與管理</p>
             
+            <!-- 檔案路徑顯示區域 -->
+            <div id="file-path-display" class="file-path-display hidden">
+                <span class="file-path-label">📄 檔案路徑：</span>
+                <span id="file-path-text" class="file-path-text"></span>
+            </div>
+            
             <div id="table-container" class="table-container">
                 <div class="empty-state">
                     <div class="empty-icon">📊</div>
                     <h3>尚未載入資料</h3>
-                    <p>請使用下方的「匯入 CSV」按鈕載入筆電規格資料</p>
+                    <p>請使用下方的「匯入 CSV 並解析」按鈕載入筆電規格資料</p>
                 </div>
             </div>
             
             <div class="actions">
-                <button id="import-csv-btn" class="secondary">📁 匯入 CSV</button>
+                <button id="import-csv-btn" class="secondary">📁 匯入 CSV 並解析</button>
                 <input type="file" id="csv-uploader" accept=".csv" style="display: none;" />
                 <button id="export-csv-btn" class="secondary">💾 匯出 CSV</button>
                 <button id="ingest-db-btn" class="primary">🚀 匯入資料庫</button>

@@ -5,6 +5,8 @@ class ProcessRequest(BaseModel):
     text_content: str
     custom_rules: Optional[Dict[str, List[str]]] = None
     temp_regex: Optional[List[str]] = None
+    file_name: Optional[str] = None
+    user_modeltype: Optional[str] = None
 
 class ProcessResponse(BaseModel):
     data: List[Dict[str, str]]
