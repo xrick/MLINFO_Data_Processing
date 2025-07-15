@@ -1,7 +1,8 @@
 [
 	[
 		{
-			"default_output_path":"./tmpcsv"
+			"default_output_path":"./tmpcsv",
+			"model_count": 1
 		}
 	],
 	[

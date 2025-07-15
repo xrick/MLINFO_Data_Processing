@@ -176,16 +176,45 @@ class CSVParser2(ParseBase):
         動態收集結果（適用於一般CSV）
         """
         self.processed_result = []
+        valid_rows = 0
+        empty_rows_skipped = 0
         
         for row in self.datalist:
-            # 確保行資料長度與標題匹配
-            padded_row = row + [''] * (len(self.headers) - len(row))
-            self.processed_result.append(padded_row[:len(self.headers)])
+            # 檢查是否為有效行：至少包含一個非空值
+            if self._is_valid_row(row):
+                # 確保行資料長度與標題匹配
+                padded_row = row + [''] * (len(self.headers) - len(row))
+                self.processed_result.append(padded_row[:len(self.headers)])
+                valid_rows += 1
+            else:
+                empty_rows_skipped += 1
         
-        logger.info(f"動態解析完成 - 處理了 {len(self.processed_result)} 行資料")
+        logger.info(f"動態解析完成 - 處理了 {valid_rows} 行有效資料，跳過 {empty_rows_skipped} 行空資料")
+
+    def _is_valid_row(self, row):
+        """
+        檢查行是否包含有效資料
+        
+        Args:
+            row: CSV 行資料列表
+            
+        Returns:
+            bool: 是否為有效行
+        """
+        if not row:
+            return False
+        
+        # 檢查是否至少有一個非空值
+        for cell in row:
+            if cell and str(cell).strip():
+                return True
+        
+        return False
 
     def collect_results(self):
-        result_rows = [[] for _ in range(len(self.datalist))]
+        # 使用配置中的 model_count，如果未設定則預設為1
+        model_count = self._rules[0][0].get("model_count", 1)
+        result_rows = [[] for _ in range(model_count)]
 
         for rule_index, rule in enumerate(self._rules[1]):
             keywords = rule.get("keywords", [])
@@ -215,7 +244,7 @@ class CSVParser2(ParseBase):
 
             if len(matched_blocks) == 0:
                 print(f"⚠️ 規則 {rule_index+1} - {column_name}: 找不到關鍵字 {keywords}，全欄填空白")
-                for idx in range(len(self.datalist)):
+                for idx in range(model_count):
                     result_rows[idx].append("")
             else:
                 if len(matched_blocks) > 1:
@@ -223,7 +252,7 @@ class CSVParser2(ParseBase):
                 first_index, block = matched_blocks[0]
                 print(f"🔍 規則 {rule_index+1} - {column_name}: 找到關鍵字 {keywords} 於第 {first_index+1} 行")
 
-                for idx in range(len(self.datalist)):
+                for idx in range(model_count):
                     col_index = 2 + idx
                     if all(col_index < len(row) for row in block):
                         lines = []

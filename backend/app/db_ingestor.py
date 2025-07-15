@@ -40,8 +40,15 @@ class DBIngestor:
         if not data:
             raise ValueError("Input data cannot be empty")
         
+        # Filter out empty records
+        valid_data = self._filter_valid_records(data)
+        if not valid_data:
+            raise ValueError("No valid records found after filtering empty data")
+        
+        print(f"資料驗證：原始 {len(data)} 筆，有效 {len(valid_data)} 筆，過濾掉 {len(data) - len(valid_data)} 筆空記錄")
+        
         # Create DataFrame and ensure all expected columns exist
-        df = pd.DataFrame(data)
+        df = pd.DataFrame(valid_data)
         
         # Add missing columns with empty strings
         for field in self.ALL_FIELDS:
@@ -56,6 +63,44 @@ class DBIngestor:
         milvus_count = self._ingest_to_milvus(df)
 
         return duckdb_count, milvus_count
+
+    def _filter_valid_records(self, data: List[Dict[str, str]]) -> List[Dict[str, str]]:
+        """
+        過濾掉空記錄，只保留有有效資料的記錄
+        
+        Args:
+            data: 原始資料列表
+            
+        Returns:
+            List[Dict]: 過濾後的有效資料列表
+        """
+        valid_records = []
+        
+        for record in data:
+            if self._is_valid_record(record):
+                valid_records.append(record)
+        
+        return valid_records
+    
+    def _is_valid_record(self, record: Dict[str, str]) -> bool:
+        """
+        檢查記錄是否包含有效資料
+        
+        Args:
+            record: 資料記錄字典
+            
+        Returns:
+            bool: 是否為有效記錄
+        """
+        if not record:
+            return False
+        
+        # 檢查是否至少有一個非空值
+        for key, value in record.items():
+            if value and str(value).strip():
+                return True
+        
+        return False
 
     def _ingest_to_duckdb(self, df: pd.DataFrame) -> int:
         print("--- Ingesting to DuckDB ---")

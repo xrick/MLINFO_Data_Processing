@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SalesRAG - 筆記型電腦智能銷售系統</title>
+    <link rel="stylesheet" href="unified_styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 頂部導航列 -->
+        <header class="top-header">
+            <div class="header-brand">
+                <i class="fas fa-laptop"></i>
+                <h1>SalesRAG</h1>
+                <span class="subtitle">筆記型電腦智能銷售系統</span>
+            </div>
+            <div class="header-actions">
+                <button class="header-btn" id="system-status-btn">
+                    <i class="fas fa-heart-pulse"></i>
+                    系統狀態
+                </button>
+                <button class="header-btn" id="settings-btn">
+                    <i class="fas fa-cog"></i>
+                    設定
+                </button>
+            </div>
+        </header>
+
+        <!-- 主要內容區域 -->
+        <div class="main-layout">
+            <!-- 左側導航欄 -->
+            <aside class="sidebar">
+                <nav class="sidebar-nav">
+                    <button class="nav-btn active" data-section="dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>儀表板</span>
+                    </button>
+                    <button class="nav-btn" data-section="data-manager">
+                        <i class="fas fa-database"></i>
+                        <span>資料管理</span>
+                    </button>
+                    <button class="nav-btn" data-section="chat">
+                        <i class="fas fa-comments"></i>
+                        <span>智能助手</span>
+                    </button>
+                    <button class="nav-btn" data-section="analytics">
+                        <i class="fas fa-chart-line"></i>
+                        <span>分析報告</span>
+                    </button>
+                </nav>
+                
+                <!-- 系統狀態指示器 -->
+                <div class="system-indicators">
+                    <div class="indicator" id="duckdb-indicator">
+                        <i class="fas fa-database"></i>
+                        <span>DuckDB</span>
+                        <div class="status-dot"></div>
+                    </div>
+                    <div class="indicator" id="milvus-indicator">
+                        <i class="fas fa-vector-square"></i>
+                        <span>Milvus</span>
+                        <div class="status-dot"></div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- 主要內容容器 -->
+            <main class="content-container">
+                <!-- 儀表板區塊 -->
+                <section id="dashboard-section" class="content-section active">
+                    <div class="section-header">
+                        <h2>系統儀表板</h2>
+                        <p>系統概覽與快速操作</p>
+                    </div>
+                    
+                    <!-- 統計卡片 -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="total-records">0</h3>
+                                <p>總記錄數</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="total-queries">0</h3>
+                                <p>查詢次數</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="last-update">--</h3>
+                                <p>最後更新</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-hard-drive"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="database-size">0 MB</h3>
+                                <p>資料庫大小</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 快速操作區域 -->
+                    <div class="quick-actions">
+                        <h3>快速操作</h3>
+                        <div class="action-buttons">
+                            <button class="action-btn primary" onclick="switchSection('data-manager')">
+                                <i class="fas fa-upload"></i>
+                                <span>匯入資料</span>
+                            </button>
+                            <button class="action-btn secondary" onclick="switchSection('chat')">
+                                <i class="fas fa-robot"></i>
+                                <span>智能問答</span>
+                            </button>
+                            <button class="action-btn tertiary" onclick="exportData()">
+                                <i class="fas fa-download"></i>
+                                <span>匯出資料</span>
+                            </button>
+                            <button class="action-btn danger" onclick="cleanData()">
+                                <i class="fas fa-trash"></i>
+                                <span>清除資料</span>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 資料管理區塊 -->
+                <section id="data-manager-section" class="content-section">
+                    <div class="section-header">
+                        <h2>資料管理</h2>
+                        <p>CSV 檔案上傳、解析與資料庫匯入</p>
+                    </div>
+
+                    <!-- 檔案上傳區域 -->
+                    <div class="upload-area">
+                        <div class="upload-zone" id="upload-zone">
+                            <div class="upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <h3>拖放檔案到此處或點擊上傳</h3>
+                            <p>支援 CSV 格式檔案</p>
+                            <input type="file" id="file-input" accept=".csv" style="display: none;">
+                            <button class="upload-btn" onclick="document.getElementById('file-input').click()">
+                                <i class="fas fa-folder-open"></i>
+                                選擇檔案
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 資料預覽與編輯區域 -->
+                    <div class="data-preview" id="data-preview" style="display: none;">
+                        <div class="preview-header">
+                            <h3>資料預覽</h3>
+                            <div class="preview-actions">
+                                <button class="btn secondary" onclick="editData()">
+                                    <i class="fas fa-edit"></i>
+                                    編輯
+                                </button>
+                                <button class="btn primary" onclick="ingestData()">
+                                    <i class="fas fa-database"></i>
+                                    匯入資料庫
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table id="data-table">
+                                <thead id="table-header"></thead>
+                                <tbody id="table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 智能助手區塊 -->
+                <section id="chat-section" class="content-section">
+                    <div class="section-header">
+                        <h2>智能助手</h2>
+                        <p>AI 驅動的筆記型電腦規格查詢與比較</p>
+                    </div>
+
+                    <div class="chat-container">
+                        <!-- 聊天訊息區域 -->
+                        <div class="chat-messages" id="chat-messages">
+                            <div class="message bot-message">
+                                <div class="message-avatar">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <div class="message-content">
+                                    <p>您好！我是您的 AI 銷售助理。我可以回答關於各種筆記型電腦的問題，並為您進行比較。</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 建議問題 -->
+                        <div class="suggestions" id="suggestions">
+                            <h4>建議問題</h4>
+                            <div class="suggestion-buttons" id="suggestion-buttons">
+                                <!-- 動態載入建議問題 -->
+                            </div>
+                        </div>
+
+                        <!-- 輸入區域 -->
+                        <div class="chat-input-area">
+                            <div class="input-container">
+                                <input type="text" id="chat-input" placeholder="輸入您的問題，例如：比較不同機型的CPU性能..." />
+                                <button id="send-btn" class="send-btn">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 分析報告區塊 -->
+                <section id="analytics-section" class="content-section">
+                    <div class="section-header">
+                        <h2>分析報告</h2>
+                        <p>系統使用統計與資料分析</p>
+                    </div>
+
+                    <div class="analytics-grid">
+                        <!-- 熱門查詢 -->
+                        <div class="analytics-card">
+                            <h3>熱門查詢</h3>
+                            <div class="query-list" id="popular-queries">
+                                <!-- 動態載入熱門查詢 -->
+                            </div>
+                        </div>
+
+                        <!-- 資料分布 -->
+                        <div class="analytics-card">
+                            <h3>資料分布</h3>
+                            <div class="distribution-chart" id="data-distribution">
+                                <!-- 動態載入資料分布圖表 -->
+                            </div>
+                        </div>
+
+                        <!-- 系統活動 -->
+                        <div class="analytics-card">
+                            <h3>系統活動</h3>
+                            <div class="activity-timeline" id="system-activity">
+                                <!-- 動態載入系統活動時間線 -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- 模態框 -->
+    <div class="modal" id="system-status-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>系統狀態</h3>
+                <button class="close-btn" onclick="closeModal('system-status-modal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="status-item">
+                    <span class="status-label">整體狀態</span>
+                    <span class="status-value" id="overall-status">檢查中...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">DuckDB 狀態</span>
+                    <span class="status-value" id="duckdb-status">檢查中...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Milvus 狀態</span>
+                    <span class="status-value" id="milvus-status">檢查中...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">總記錄數</span>
+                    <span class="status-value" id="modal-total-records">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">最後更新</span>
+                    <span class="status-value" id="modal-last-update">--</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 載入指示器 -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>處理中...</p>
+        </div>
+    </div>
+
+    <!-- 通知區域 -->
+    <div class="notification-container" id="notification-container">
+        <!-- 動態載入通知 -->
+    </div>
+
+    <script src="unified_app.js"></script>
+</body>
+</html>

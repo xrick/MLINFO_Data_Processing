@@ -34,6 +34,20 @@ The application uses DuckDB and Milvus for data storage:
 - DuckDB file: `sales_specs.db` (created automatically)
 - Milvus connection: localhost:19530 (configurable via environment variables)
 
+### Database Management Tools
+Located in the `tools/` directory:
+- **duckdbviewer.py**: View and export DuckDB data
+- **db_cleaner.py**: Clean all data from databases (preserves structure)
+- **milvusviewer.py**: View Milvus vector data (if available)
+
+```bash
+# Check database status
+cd tools && python db_cleaner.py status
+
+# Clear all data (with confirmation)
+cd tools && python db_cleaner.py clear-all
+```
+
 ## Architecture
 
 ### Backend Structure

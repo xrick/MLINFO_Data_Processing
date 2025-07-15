@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales RAG - 筆電銷售助手</title>
+    <link rel="stylesheet" href="mainpage.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- 左側導航欄 -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-robot"></i> Sales RAG</h2>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <button class="nav-btn active" data-section="chat">
+                    <i class="fas fa-comments"></i>
+                    智能助手
+                </button>
+                <button class="nav-btn" data-section="import">
+                    <i class="fas fa-upload"></i>
+                    匯入資料
+                </button>
+                <button class="nav-btn" data-section="files">
+                    <i class="fas fa-folder"></i>
+                    已匯入檔案
+                </button>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="file-list">
+                    <h4>已匯入檔案列表</h4>
+                    <ul id="imported-files">
+                        <li><i class="fas fa-file-csv"></i> raw_938.csv</li>
+                        <li><i class="fas fa-file-csv"></i> processed_data.csv</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主要內容區域 -->
+        <div class="main-content">
+            <!-- 智能助手區塊 -->
+            <div id="chat-section" class="content-section active">
+                <div class="section-header">
+                    <h1>筆記型電腦銷售助手</h1>
+                    <p>智慧比較筆記型電腦規格與性能</p>
+                </div>
+
+                <div class="chat-container">
+                    <!-- 歡迎訊息 -->
+                    <div class="chat-message bot-message">
+                        <div class="message-content">
+                            <p>您好！我是您的 AI 銷售助理。我可以回答關於各種筆記型電腦的問題，並為您進行比較。</p>
+                        </div>
+                    </div>
+
+                    <!-- 預設問題區塊 -->
+                    <div class="default-questions">
+                        <h3>預設問題</h3>
+                        <div class="question-grid">
+                            <button class="question-btn">Does AG958 support fast charging or USB-C PD (Power Delivery)?</button>
+                            <button class="question-btn">Does APX819: FP7R2 support dual-channel RAM configuration?</button>
+                            <button class="question-btn">How does AMD819-S: FT6 manage power efficiency when connected to multiple displays?</button>
+                            <button class="question-btn">Is APX819: FP7R2 certified for MIL-STD durability?</button>
+                            <button class="question-btn">Does AHP958 support dual-channel RAM configuration?</button>
+                            <button class="question-btn">比較958系列哪款筆記型電腦更適合遊戲？</button>
+                            <button class="question-btn">請比較819系列顯示螢幕規格有什麼不同？</button>
+                            <button class="question-btn">請比較839系列機型的電池續航力比較？</button>
+                            <button class="question-btn">請比較AMD819-S: FT6與AMD819: FT6何者更輕便？</button>
+                        </div>
+                    </div>
+
+                    <!-- 聊天輸入區 -->
+                    <div class="chat-input-container">
+                        <div class="input-wrapper">
+                            <input type="text" id="chat-input" placeholder="輸入您的問題，例如：比較不同機型的CPU性能...">
+                            <button id="send-btn" class="send-btn">
+                                <i class="fas fa-paper-plane"></i>
+                                發送
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Q&A 圖標 -->
+                <div class="qa-icon">
+                    <i class="fas fa-question"></i>
+                </div>
+            </div>
+
+            <!-- 資料匯入區塊 -->
+            <div id="import-section" class="content-section">
+                <div class="section-header">
+                    <h1>MLINFO 資料處理系統</h1>
+                    <p>筆電規格資料匯入與管理</p>
+                </div>
+
+                <div class="data-container">
+                    <!-- 資料顯示區域 -->
+                    <div class="data-display">
+                        <div class="empty-state" id="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <h3>尚未載入資料</h3>
+                            <p>請使用下方的「匯入 CSV 並解析」按鈕載入筆電規格資料</p>
+                        </div>
+                        
+                        <div class="data-table" id="data-table" style="display: none;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Model Type</th>
+                                        <th>Version</th>
+                                        <th>Model Name</th>
+                                        <th>CPU</th>
+                                        <th>GPU</th>
+                                        <th>Memory</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-body">
+                                    <!-- 動態載入資料 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 操作按鈕區 -->
+                    <div class="action-bar">
+                        <button class="action-btn" id="import-csv-btn">
+                            <i class="fas fa-folder-open"></i>
+                            匯入 CSV 並解析
+                        </button>
+                        <button class="action-btn" id="export-csv-btn">
+                            <i class="fas fa-download"></i>
+                            匯出 CSV
+                        </button>
+                        <button class="action-btn" id="clear-data-btn">
+                            <i class="fas fa-trash"></i>
+                            清除資料
+                        </button>
+                        <button class="action-btn primary" id="import-db-btn">
+                            <i class="fas fa-rocket"></i>
+                            匯入資料庫
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 檔案上傳模態框 -->
+                <div id="upload-modal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>匯入 CSV 檔案</h3>
+                            <span class="close">&times;</span>
+                        </div>
+                        <div class="modal-body">
+                            <div class="upload-area" id="upload-area">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>拖拽 CSV 檔案到此處或點擊選擇檔案</p>
+                                <input type="file" id="file-input" accept=".csv" style="display: none;">
+                            </div>
+                            <div class="upload-options">
+                                <label>
+                                    <input type="checkbox" id="auto-parse" checked>
+                                    自動解析資料
+                                </label>
+                                <label>
+                                    <input type="checkbox" id="validate-data" checked>
+                                    驗證資料格式
+                                </label>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-secondary" id="cancel-upload">取消</button>
+                            <button class="btn-primary" id="confirm-upload">確認匯入</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 檔案管理區塊 -->
+            <div id="files-section" class="content-section">
+                <div class="section-header">
+                    <h1>檔案管理</h1>
+                    <p>已匯入檔案的詳細資訊與管理</p>
+                </div>
+
+                <div class="files-container">
+                    <div class="files-grid">
+                        <div class="file-card">
+                            <div class="file-icon">
+                                <i class="fas fa-file-csv"></i>
+                            </div>
+                            <div class="file-info">
+                                <h4>raw_938.csv</h4>
+                                <p>原始筆電規格資料</p>
+                                <span class="file-size">2.3 MB</span>
+                                <span class="file-date">2025-07-10</span>
+                            </div>
+                            <div class="file-actions">
+                                <button class="file-btn"><i class="fas fa-eye"></i></button>
+                                <button class="file-btn"><i class="fas fa-download"></i></button>
+                                <button class="file-btn"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="file-card">
+                            <div class="file-icon">
+                                <i class="fas fa-file-csv"></i>
+                            </div>
+                            <div class="file-info">
+                                <h4>processed_data.csv</h4>
+                                <p>處理後的結構化資料</p>
+                                <span class="file-size">1.8 MB</span>
+                                <span class="file-date">2025-07-10</span>
+                            </div>
+                            <div class="file-actions">
+                                <button class="file-btn"><i class="fas fa-eye"></i></button>
+                                <button class="file-btn"><i class="fas fa-download"></i></button>
+                                <button class="file-btn"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="mainpage.js"></script>
+</body>
+</html> 
